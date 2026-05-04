@@ -15,7 +15,7 @@ public class HeritageResource {
     private String description;
     private String category;
 
-    // ✨ 新增：多媒体与元数据字段
+    // ✨ New: media and metadata fields
     private String thumbnail;
     private String mediaUrl;
     private String tags;

@@ -13,7 +13,7 @@ public class Notification {
     private String content;
     private Integer isRead;
 
-    private String type; // ✨ 新增：REVIEW, COMMENT, SYSTEM
+    private String type; // ✨ New: REVIEW, COMMENT, SYSTEM
 
     private LocalDateTime createdAt;
 

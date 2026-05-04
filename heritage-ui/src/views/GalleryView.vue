@@ -1,25 +1,25 @@
 <template>
   <div class="gallery-page">
     <div class="public-nav">
-      <div class="logo">🏛️ 社区遗产资源共享平台</div>
+      <div class="logo">🏛️ Community Heritage Resource Sharing Platform</div>
       <div class="nav-actions">
-        <el-input v-model="searchKeyword" placeholder="搜索遗产资源..." prefix-icon="Search" style="width: 250px; margin-right: 20px" clearable />
-        <el-button type="primary" plain @click="$router.push('/login')">贡献者/管理员登录</el-button>
+        <el-input v-model="searchKeyword" placeholder="Search heritage resources..." prefix-icon="Search" style="width: 250px; margin-right: 20px" clearable />
+        <el-button type="primary" plain @click="$router.push('/login')">Contributor/Admin Login</el-button>
       </div>
     </div>
 
     <div class="hero-banner">
-      <h1>探索、传承、共享我们的文化瑰宝</h1>
-      <p>发现身边的非物质文化遗产与历史印记</p>
+      <h1>Explore, Inherit, Share Our Cultural Treasures</h1>
+      <p>Discover intangible cultural heritage and historical imprints around you</p>
     </div>
 
     <div class="gallery-container">
-      <el-empty v-if="filteredResources.length === 0" description="暂无公开展出的资源，敬请期待！" />
+      <el-empty v-if="filteredResources.length === 0" description="No publicly available resources yet, stay tuned!" />
 
       <el-row :gutter="24" v-else>
         <el-col :xs="24" :sm="12" :md="8" v-for="item in filteredResources" :key="item.id" style="margin-bottom: 24px;">
           <el-card class="resource-card" shadow="hover" :body-style="{ padding: '0px' }">
-            <img :src="`https://source.unsplash.com/800x600/?heritage,culture,${item.id}`" class="card-image" alt="封面图" />
+            <img :src="`https://source.unsplash.com/800x600/?heritage,culture,${item.id}`" class="card-image" alt="Cover image" />
 
             <div style="padding: 20px;">
               <div class="card-header">
@@ -28,9 +28,9 @@
               </div>
               <p class="card-desc">{{ item.description }}</p>
               <div class="card-footer">
-                <span class="publish-time">编号: #{{ item.id }}</span>
+                <span class="publish-time">ID: #{{ item.id }}</span>
                 <div class="card-footer">
-                  <el-button type="text" class="detail-btn" @click="openDetail(item)">了解详情 >></el-button>
+                  <el-button type="text" class="detail-btn" @click="openDetail(item)">Learn more >></el-button>
                 </div>
               </div>
             </div>
@@ -46,15 +46,15 @@
           </div>
         </div>
 
-        <el-divider>💬 游客留言板</el-divider>
+        <el-divider>💬 Visitor Message Board</el-divider>
 
         <div style="margin-bottom: 20px; display: flex; gap: 10px;">
-          <el-input v-model="newCommentText" placeholder="写下你的感悟或留言..." type="textarea" :rows="2" />
-          <el-button type="primary" style="height: auto;" @click="submitComment">发表<br>评论</el-button>
+          <el-input v-model="newCommentText" placeholder="Share your insights or leave a message..." type="textarea" :rows="2" />
+          <el-button type="primary" style="height: auto;" @click="submitComment">Post<br>Comment</el-button>
         </div>
 
         <div v-if="comments.length === 0" style="text-align: center; color: #999; padding: 20px 0;">
-          暂无留言，快来抢沙发吧！
+          No messages yet, be the first to comment!
         </div>
 
         <div v-for="c in comments" :key="c.id" style="background: #f9fafc; padding: 15px; border-radius: 8px; margin-bottom: 10px;">
@@ -77,7 +77,7 @@ import { Search } from '@element-plus/icons-vue'
 const publicResources = ref([])
 const searchKeyword = ref('')
 
-// 在 script setup 引入的下方，补充这些响应式变量：
+// Below the script setup imports, add these reactive variables:
 import { ElMessage } from 'element-plus'
 
 const detailVisible = ref(false)
@@ -85,59 +85,59 @@ const currentResource = ref({})
 const comments = ref([])
 const newCommentText = ref('')
 
-// 点击“了解详情”触发的函数
+// Function triggered when clicking "Learn more"
 const openDetail = async (item) => {
   currentResource.value = item
   detailVisible.value = true
-  fetchComments(item.id) // 拉取这篇资源的评论
+  fetchComments(item.id) // Fetch comments for this resource
 }
 
-// 去后端拉取评论
+// Fetch comments from backend
 const fetchComments = async (resourceId) => {
   try {
-    const response = await axios.get(`http://localhost:8080/api/public/resources/${resourceId}/comments`)
+    const response = await axios.get(`http://116.62.165.182:8080/api/public/resources/${resourceId}/comments`)
     comments.value = response.data
   } catch (error) {
-    console.error('获取评论失败')
+    console.error('Failed to get comments')
   }
 }
 
-// 提交评论的函数
+// Function to submit comment
 const submitComment = async () => {
   if (!newCommentText.value.trim()) {
-    ElMessage.warning('留言内容不能为空哦！')
+    ElMessage.warning('Comment content cannot be empty!')
     return
   }
 
   try {
-    // 尝试获取当前登录的用户名，如果没登录就是 null
+    // Try to get current logged-in username, null if not logged in
     const currentUser = localStorage.getItem('currentUser')
 
-    await axios.post('http://localhost:8080/api/public/comments', {
+    await axios.post('http://116.62.165.182:8080/api/public/comments', {
       resourceId: currentResource.value.id,
-      username: currentUser, // 后端如果收到 null 会自动变成“匿名文化爱好者”
+      username: currentUser, // Backend will automatically become "Anonymous Cultural Enthusiast" if null
       content: newCommentText.value
     })
 
-    ElMessage.success('评论发表成功！')
-    newCommentText.value = '' // 清空输入框
-    fetchComments(currentResource.value.id) // 刷新评论列表！
+    ElMessage.success('Comment posted successfully!')
+    newCommentText.value = '' // Clear input box
+    fetchComments(currentResource.value.id) // Refresh comment list!
   } catch (error) {
-    ElMessage.error('评论发表失败')
+    ElMessage.error('Failed to post comment')
   }
 }
 
-// 向 Java 的新公开接口请求数据
+// Request data from Java's new public interface
 const fetchPublicData = async () => {
   try {
-    const response = await axios.get('http://localhost:8080/api/public/resources')
+    const response = await axios.get('http://116.62.165.182:8080/api/public/resources')
     publicResources.value = response.data
   } catch (error) {
-    console.error('获取公开资源失败')
+    console.error('Failed to get public resources')
   }
 }
 
-// 纯前端实现秒级搜索过滤功能
+// Pure frontend implementation of second-level search filtering functionality
 const filteredResources = computed(() => {
   if (!searchKeyword.value) return publicResources.value
   return publicResources.value.filter(item =>

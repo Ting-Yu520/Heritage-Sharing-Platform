@@ -1,36 +1,47 @@
 <template>
-  <div>
-    <h2>🛡️ 系统审计日志 (Audit Logs)</h2>
-    <el-card>
-      <div style="display: flex; gap: 15px; margin-bottom: 20px; align-items: center;">
-        <el-input v-model="searchResourceId" placeholder="按资源 ID 搜索" style="width: 200px" clearable />
-        <el-select v-model="searchAction" placeholder="按操作类型过滤" style="width: 200px" clearable>
-          <el-option label="CREATE (新增)" value="CREATE" />
-          <el-option label="UPDATE (修改)" value="UPDATE" />
-          <el-option label="ARCHIVE (归档)" value="ARCHIVE" />
-          <el-option label="APPROVE/RESTORE (发布/恢复)" value="APPROVE/RESTORE" />
-          <el-option label="DELETE (删除)" value="DELETE" />
-        </el-select>
+  <div class="audit-log-page">
+    <div class="page-header">
+      <h1>System Audit Logs</h1>
+      <p>View all system operation records and track resource changes.</p>
+    </div>
 
-        <div style="flex-grow: 1;"></div>
+    <el-card class="main-card" shadow="hover">
+      <div class="toolbar">
+        <div class="left-tools">
+          <el-input
+              v-model="searchResourceId"
+              placeholder="Search by Resource ID"
+              style="width: 200px"
+              clearable
+          />
+          <el-select v-model="searchAction" placeholder="Filter by Action Type" style="width: 200px" clearable>
+            <el-option label="CREATE (Add)" value="CREATE" />
+            <el-option label="UPDATE (Modify)" value="UPDATE" />
+            <el-option label="ARCHIVE (Archive)" value="ARCHIVE" />
+            <el-option label="APPROVE/RESTORE (Publish/Restore)" value="APPROVE/RESTORE" />
+            <el-option label="DELETE (Delete)" value="DELETE" />
+          </el-select>
+        </div>
 
-        <el-button type="success" @click="exportCSV">📥 导出报表 (Export CSV)</el-button>
-        <el-button type="primary" plain @click="fetchLogs">刷新日志</el-button>
+        <div>
+          <el-button type="success" @click="exportCSV">Export Report (CSV)</el-button>
+          <el-button type="primary" plain @click="fetchLogs">Refresh Logs</el-button>
+        </div>
       </div>
 
       <el-table :data="filteredLogs" border style="width: 100%" stripe height="500">
-        <el-table-column prop="id" label="日志 ID" width="80" align="center" />
-        <el-table-column prop="userId" label="操作人" width="120" />
-        <el-table-column prop="actionType" label="动作类型" width="160">
+        <el-table-column prop="id" label="Log ID" width="80" align="center" />
+        <el-table-column prop="userId" label="Operator" width="120" />
+        <el-table-column prop="actionType" label="Action Type" width="160">
           <template #default="scope">
             <el-tag effect="dark" :type="scope.row.actionType === 'DELETE' ? 'danger' : 'info'">
               {{ scope.row.actionType }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="resourceId" label="受影响资源 ID" width="130" align="center" />
-        <el-table-column prop="changesSummary" label="变更详情" />
-        <el-table-column prop="createdAt" label="操作时间" width="220" />
+        <el-table-column prop="resourceId" label="Affected Resource ID" width="130" align="center" />
+        <el-table-column prop="changesSummary" label="Change Details" />
+        <el-table-column prop="createdAt" label="Operation Time" width="220" />
       </el-table>
     </el-card>
   </div>
@@ -45,17 +56,17 @@ const allLogs = ref([])
 const searchResourceId = ref('')
 const searchAction = ref('')
 
-// 获取所有日志 (按时间倒序排，最新的在上面)
+// Get all logs (sorted by time in reverse order, newest first)
 const fetchLogs = async () => {
   try {
-    const response = await axios.get('http://localhost:8080/api/audit-logs')
+    const response = await axios.get('http://116.62.165.182:8080/api/audit-logs')
     allLogs.value = response.data.reverse()
   } catch (error) {
-    ElMessage.error('无法获取审计日志')
+    ElMessage.error('Failed to get audit logs')
   }
 }
 
-// 魔法：多条件动态过滤计算属性
+// Magic: Multi-condition dynamic filtering computed property
 const filteredLogs = computed(() => {
   return allLogs.value.filter(log => {
     const matchId = searchResourceId.value ? String(log.resourceId).includes(searchResourceId.value) : true
@@ -64,18 +75,17 @@ const filteredLogs = computed(() => {
   })
 })
 
-// PBI 4: 导出 CSV 报表的核心功能
+// PBI 4: Core functionality for exporting CSV report
 const exportCSV = () => {
   if (filteredLogs.value.length === 0) {
-    ElMessage.warning('当前没有可导出的数据')
+    ElMessage.warning('No data available for export')
     return
   }
-  // \uFEFF 是为了让 Excel 打开不乱码
   let csvContent = "data:text/csv;charset=utf-8,\uFEFF"
-  csvContent += "日志ID,操作人,动作类型,受影响资源ID,变更详情,操作时间\n"
+  csvContent += "Log ID,Operator,Action Type,Affected Resource ID,Change Details,Operation Time\n"
 
   filteredLogs.value.forEach(row => {
-    const changes = `"${row.changesSummary || ''}"` // 防止内容里有逗号导致串列
+    const changes = `"${row.changesSummary || ''}"`
     const rowData = `${row.id},${row.userId},${row.actionType},${row.resourceId},${changes},${row.createdAt}`
     csvContent += rowData + "\n"
   })
@@ -85,12 +95,51 @@ const exportCSV = () => {
   link.setAttribute("href", encodedUri)
   link.setAttribute("download", "system_audit_logs.csv")
   document.body.appendChild(link)
-  link.click() // 模拟点击下载
+  link.click()
   document.body.removeChild(link)
-  ElMessage.success('报表导出成功！')
+  ElMessage.success('Report exported successfully!')
 }
 
 onMounted(() => {
   fetchLogs()
 })
 </script>
+
+<style scoped>
+.audit-log-page {
+  padding: 40px;
+  max-width: 1280px;
+  margin: 0 auto;
+  background: #fff;
+}
+
+.page-header h1 {
+  font-size: 2.8rem;
+  font-weight: 300;
+  letter-spacing: -2px;
+  color: #111;
+  margin-bottom: 8px;
+}
+
+.page-header p {
+  font-size: 1.1rem;
+  color: #666;
+}
+
+.main-card {
+  border: none;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f5f7fa;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.left-tools { display: flex; align-items: center; gap: 15px; }
+</style>

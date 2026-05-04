@@ -2,6 +2,8 @@ package com.heritage.platform.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.heritage.platform.config.RoleCheck;
+import com.heritage.platform.config.UserContext;
 import com.heritage.platform.entity.*;
 import com.heritage.platform.mapper.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,12 +27,10 @@ public class ResourceController {
     @Autowired private UserFavoriteMapper userFavoriteMapper;
 
     // ==========================================================
-    // 🎨 创作者投稿中心 (Sprint 6: PBI 1, 3, 4, 5)
+    // 🎨 Creator submission center (CONTRIBUTOR / ADMIN)
     // ==========================================================
 
-    /**
-     * 获取当前用户的所有稿件 (包含草稿、审核中、已发布、被驳回、已撤回)
-     */
+    @RoleCheck({"ADMIN", "CONTRIBUTOR"})
     @GetMapping("/api/my-resources")
     public Page<HeritageResource> getMyResources(
             @RequestParam String username,
@@ -43,9 +43,7 @@ public class ResourceController {
         return resourceMapper.selectPage(page, query);
     }
 
-    /**
-     * PBI 1 & 5: 提交新稿件 (支持直接提交审核 status=0, 或存草稿 status=-1)
-     */
+    @RoleCheck({"ADMIN", "CONTRIBUTOR"})
     @PostMapping("/api/my-resources/submit")
     public Map<String, Object> submitMyResource(@RequestBody HeritageResource resource, @RequestParam(defaultValue = "0") Integer status) {
         Map<String, Object> res = new HashMap<>();
@@ -58,19 +56,17 @@ public class ResourceController {
         logAction("CONTRIBUTOR_SUBMIT", resource.getId(), "User " + resource.getContributorUsername() + " " + actionStr);
 
         res.put("success", true);
-        res.put("message", status == -1 ? "草稿保存成功！" : "提交成功，请等待管理员审核！");
+        res.put("message", status == -1 ? "Draft saved successfully!" : "Submitted successfully. Please wait for administrator review.");
         return res;
     }
 
-    /**
-     * PBI 3: 修改自己的稿件 (重新提交或更新草稿)
-     */
+    @RoleCheck({"ADMIN", "CONTRIBUTOR"})
     @PutMapping("/api/my-resources/{id}")
     public Map<String, Object> updateMyResource(@PathVariable Long id, @RequestBody HeritageResource resource, @RequestParam(defaultValue = "0") Integer status) {
         Map<String, Object> res = new HashMap<>();
         HeritageResource old = resourceMapper.selectById(id);
         if (old == null) {
-            res.put("success", false); res.put("message", "资源不存在！"); return res;
+            res.put("success", false); res.put("message", "Resource does not exist!"); return res;
         }
 
         old.setTitle(resource.getTitle());
@@ -80,38 +76,53 @@ public class ResourceController {
         old.setMediaUrl(resource.getMediaUrl());
         old.setTags(resource.getTags());
         old.setLocation(resource.getLocation());
-        old.setStatus(status); // 更新状态 (-1 草稿 或 0 待审)
+        old.setStatus(status);
         old.setUpdatedAt(LocalDateTime.now());
         resourceMapper.updateById(old);
 
         logAction("CONTRIBUTOR_EDIT", id, "Resource updated and status set to " + status);
         res.put("success", true);
-        res.put("message", status == -1 ? "草稿更新成功！" : "重新提交审核成功！");
+        res.put("message", status == -1 ? "Draft updated successfully!" : "Resubmitted for review successfully!");
         return res;
     }
 
-    /**
-     * PBI 4: 撤回正在审核中的稿件 (状态变为 4)
-     */
+    @RoleCheck({"ADMIN", "CONTRIBUTOR"})
     @PutMapping("/api/my-resources/{id}/withdraw")
     public Map<String, Object> withdrawMyResource(@PathVariable Long id) {
         Map<String, Object> res = new HashMap<>();
         HeritageResource r = resourceMapper.selectById(id);
-        // 只有 0(待审核) 的状态才能撤回
         if (r != null && r.getStatus() == 0) {
-            r.setStatus(4); // 4 = 已撤回
+            r.setStatus(4);
             r.setUpdatedAt(LocalDateTime.now());
             resourceMapper.updateById(r);
             logAction("CONTRIBUTOR_WITHDRAW", id, "User withdrew the pending submission");
-            res.put("success", true); res.put("message", "撤回成功！您的稿件已移出审核队列。");
+            res.put("success", true); res.put("message", "Withdrawn successfully. Your submission has been removed from the review queue.");
         } else {
-            res.put("success", false); res.put("message", "只能撤回正在审核中的稿件！");
+            res.put("success", false); res.put("message", "Only submissions under review can be withdrawn!");
         }
         return res;
     }
 
+    @RoleCheck({"ADMIN", "CONTRIBUTOR"})
+    @DeleteMapping("/api/my-resources/{id}")
+    public Map<String, Object> deleteMyResource(@PathVariable Long id) {
+        Map<String, Object> res = new HashMap<>();
+        HeritageResource r = resourceMapper.selectById(id);
+        if (r == null) {
+            res.put("success", false);
+            res.put("message", "Resource does not exist!");
+            return res;
+        }
+
+        resourceMapper.deleteById(id);
+        logAction("CONTRIBUTOR_DELETE", id, "Resource titled '" + r.getTitle() + "' deleted by contributor");
+        res.put("success", true);
+        res.put("message", "Deleted successfully!");
+        return res;
+    }
+
     // ==========================================================
-    // 🏛️ 前台大厅、互动点赞、后台管理等旧接口 (保持不变，全部兼容)
+    // 🏛️ Public hall & interactions (public)
     // ==========================================================
 
     @GetMapping("/api/public/resources")
@@ -173,24 +184,34 @@ public class ResourceController {
         return resourceMapper.selectPage(page, new QueryWrapper<HeritageResource>().in("id", resourceIds));
     }
 
-    @GetMapping("/api/resources")
-    public List<HeritageResource> getResources() { return resourceMapper.selectList(null); }
+    // ==========================================================
+    // 🛡️ Admin features (ADMIN only)
+    // ==========================================================
 
+    @RoleCheck("ADMIN")
+    @GetMapping("/api/resources")
+    public List<HeritageResource> getResources() {
+        return resourceMapper.selectList(null);
+    }
+
+    @RoleCheck("ADMIN")
     @PostMapping("/api/resources")
     public String addResource(@RequestBody HeritageResource resource) {
         resource.setStatus(0);
         resource.setUpdatedAt(LocalDateTime.now());
         resourceMapper.insert(resource);
         logAction("CREATE", resource.getId(), "Created new resource: " + resource.getTitle());
-        return "新增成功，请等待审核！";
+        return "Created successfully. Please wait for review.";
     }
 
+    @RoleCheck("ADMIN")
     @DeleteMapping("/api/resources/{id}")
     public String deleteResource(@PathVariable Long id) {
         resourceMapper.deleteById(id);
-        return "删除成功！";
+        return "Deleted successfully!";
     }
 
+    @RoleCheck("ADMIN")
     @GetMapping("/api/stats/summary")
     public Map<String, Integer> getSummary() {
         Map<String, Integer> summary = new HashMap<>();
@@ -201,6 +222,7 @@ public class ResourceController {
         return summary;
     }
 
+    @RoleCheck("ADMIN")
     @GetMapping("/api/resources/pending")
     public Page<HeritageResource> getPendingResources(@RequestParam(defaultValue = "1") Integer current, @RequestParam(defaultValue = "20") Integer size, @RequestParam(required = false) String category, @RequestParam(required = false) String startDate, @RequestParam(required = false) String endDate) {
         Page<HeritageResource> page = new Page<>(current, size);
@@ -211,28 +233,33 @@ public class ResourceController {
         return resourceMapper.selectPage(page, query);
     }
 
+    @RoleCheck("ADMIN")
     @PutMapping("/api/resources/{id}/status")
     public String updateResourceStatus(@PathVariable Long id, @RequestParam Integer status, @RequestParam(required = false) String feedback) {
         HeritageResource resource = resourceMapper.selectById(id);
-        if (resource == null) return "未找到该资源！";
+        if (resource == null) return "Resource not found!";
         resource.setStatus(status);
         resource.setUpdatedAt(LocalDateTime.now());
         resourceMapper.updateById(resource);
 
         Notification note = new Notification();
-        note.setReceiverUsername(resource.getContributorUsername()); // 修复：通知发给真实的贡献者
-        String resultText = (status == 1) ? "【已通过】您的资源已公开发布！" : (status == 2 ? "【被驳回】原因：" + feedback + "。请修改后重新提交。" : "【已归档】资源已被下架。");
-        note.setContent("关于《" + resource.getTitle() + "》的审核结果：" + resultText);
+        note.setReceiverUsername(resource.getContributorUsername());
+        String resultText = (status == 1)
+                ? "[APPROVED] Your resource has been published."
+                : (status == 2
+                    ? "[REJECTED] Reason: " + feedback + ". Please revise and resubmit."
+                    : "[ARCHIVED] The resource has been taken offline.");
+        note.setContent("Review result for \"" + resource.getTitle() + "\": " + resultText);
         note.setCreatedAt(LocalDateTime.now());
         notificationMapper.insert(note);
 
         logAction((status == 3) ? "ARCHIVE" : (status == 1 ? "APPROVE" : "REJECT"), id, "Status updated to " + status);
-        return "操作成功！";
+        return "Operation successful!";
     }
 
     private void logAction(String type, Long resId, String summary) {
         AuditLog log = new AuditLog();
-        log.setUserId("System");
+        log.setUserId(UserContext.getCurrentUser());  // Dynamically get current user
         log.setActionType(type);
         log.setResourceId(resId);
         log.setChangesSummary(summary);

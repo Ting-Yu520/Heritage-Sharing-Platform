@@ -1,19 +1,18 @@
 <template>
-  <div class="login-container">
-    <div class="glow-bg"></div>
+  <el-button class="back-home-btn" @click="router.push('/')">← Back to Home</el-button>
 
+  <div class="login-page">
     <div class="login-box">
       <div class="login-header">
-        <h2 class="title">社区遗产资源共享平台</h2>
-        <p class="subtitle">Heritage Resource Curation Platform</p>
+        <h2>HERITAGE</h2>
+        <p>Community Heritage Resource Sharing Platform</p>
       </div>
 
       <el-form :model="loginForm" :rules="loginRules" ref="loginRef" size="large">
         <el-form-item prop="username">
           <el-input
               v-model="loginForm.username"
-              placeholder="账号或注册邮箱"
-              prefix-icon="User"
+              placeholder="Username or registered email"
               clearable>
           </el-input>
         </el-form-item>
@@ -22,8 +21,7 @@
           <el-input
               v-model="loginForm.password"
               type="password"
-              placeholder="密码"
-              prefix-icon="Lock"
+              placeholder="Password"
               show-password
               @keyup.enter="handleLogin">
           </el-input>
@@ -31,12 +29,12 @@
 
         <el-form-item>
           <el-button type="primary" class="login-btn" :loading="isLoading" @click="handleLogin">
-            立即登录
+            Login Now
           </el-button>
 
           <div class="flex-between" style="width: 100%; margin-top: 15px;">
-            <el-link :underline="false" type="info" @click="showReg = true">加入非遗传承计划</el-link>
-            <el-link :underline="false" type="warning" @click="openForgotPwd">忘记密码？</el-link>
+            <el-link :underline="false" type="info" @click="showReg = true">Join Heritage Inheritance Program</el-link>
+            <el-link :underline="false" type="warning" @click="openForgotPwd">Forgot password?</el-link>
           </div>
         </el-form-item>
       </el-form>
@@ -44,48 +42,56 @@
       <div class="login-footer"><span>© 2026 XJTLU CPT202 Project</span></div>
     </div>
 
-    <el-dialog v-model="showReg" title="申请成为非遗贡献者" width="400px" center class="reg-dialog" append-to-body>
+    <!-- Registration Dialog -->
+    <el-dialog v-model="showReg" title="Apply to be Heritage Contributor" width="400px" center>
       <el-form :model="regForm" :rules="regRules" ref="regRef" label-position="top">
-        <el-form-item label="登录账号" prop="username">
-          <el-input v-model="regForm.username" placeholder="建议使用英文或数字" />
+        <el-form-item label="Login Username" prop="username">
+          <el-input v-model="regForm.username" placeholder="Recommended: English or numbers" />
         </el-form-item>
-        <el-form-item label="注册邮箱 (重要：找回密码凭证)" prop="email">
-          <el-input v-model="regForm.email" placeholder="例如：user@xjtlu.edu.cn" />
+        <el-form-item label="Registration Email" prop="email">
+          <el-input v-model="regForm.email" placeholder="Example: user@xjtlu.edu.cn" />
         </el-form-item>
-        <el-form-item label="登录密码" prop="password">
-          <el-input v-model="regForm.password" type="password" show-password placeholder="请设置您的密码" />
+        <el-form-item label="Login Password" prop="password">
+          <el-input v-model="regForm.password" type="password" show-password placeholder="Please set your password" />
         </el-form-item>
-        <el-form-item label="真实姓名/昵称" prop="realName">
-          <el-input v-model="regForm.realName" placeholder="我们将如何称呼您" />
+        <el-form-item label="Real Name/Nickname" prop="realName">
+          <el-input v-model="regForm.realName" placeholder="How we will address you" />
+        </el-form-item>
+        <el-form-item label="Birthday" prop="birthday">
+          <el-date-picker
+              v-model="regForm.birthday"
+              type="date"
+              placeholder="Please select your birthday"
+              style="width: 100%"
+              value-format="YYYY-MM-DD"
+          />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="showReg = false">取消</el-button>
-        <el-button type="primary" @click="handleRegister" :loading="isRegLoading">提交注册申请</el-button>
+        <el-button @click="showReg = false">Cancel</el-button>
+        <el-button type="primary" @click="handleRegister" :loading="isRegLoading">Submit Registration Application</el-button>
       </template>
     </el-dialog>
 
-    <el-dialog v-model="forgotDialog.visible" title="找回密码" width="400px" center append-to-body>
-
+    <!-- Forgot Password Dialog -->
+    <el-dialog v-model="forgotDialog.visible" title="Recover Password" width="400px" center>
       <div v-if="forgotDialog.step === 1">
-        <p style="color: #666; font-size: 14px; margin-bottom: 20px;">请输入您注册时使用的邮箱，系统将为您发送包含验证码的邮件。</p>
-        <el-input v-model="forgotDialog.email" placeholder="请输入注册邮箱" size="large" />
+        <p style="color: #666; font-size: 14px; margin-bottom: 20px;">Please enter the email you used for registration.</p>
+        <el-input v-model="forgotDialog.email" placeholder="Please enter your registration email" size="large" />
         <el-button type="primary" size="large" style="width: 100%; margin-top: 20px;" :loading="forgotDialog.loading" @click="sendCode">
-          发送重置邮件
+          Send Reset Email
         </el-button>
       </div>
 
       <div v-else>
-        <p style="color: #67C23A; font-size: 14px; margin-bottom: 20px;">验证码已发送至您的邮箱（本次请在 Java 控制台查看模拟邮件）。</p>
-        <el-input v-model="forgotDialog.code" placeholder="请输入 6 位验证码" size="large" style="margin-bottom: 15px;" />
-        <el-input v-model="forgotDialog.newPassword" type="password" show-password placeholder="请设置新密码" size="large" />
+        <p style="color: #67C23A; font-size: 14px; margin-bottom: 20px;">Verification code has been sent to your email.</p>
+        <el-input v-model="forgotDialog.code" placeholder="Please enter 6-digit verification code" size="large" style="margin-bottom: 15px;" />
+        <el-input v-model="forgotDialog.newPassword" type="password" show-password placeholder="Please set a new password" size="large" />
         <el-button type="success" size="large" style="width: 100%; margin-top: 20px;" @click="resetPwd">
-          确认重置密码
+          Confirm Password Reset
         </el-button>
       </div>
-
     </el-dialog>
-
   </div>
 </template>
 
@@ -99,12 +105,12 @@ const router = useRouter()
 const isLoading = ref(false)
 const isRegLoading = ref(false)
 
-// --- 登录逻辑 (兼容账号与邮箱) ---
+// Login logic
 const loginRef = ref(null)
 const loginForm = ref({ username: '', password: '' })
 const loginRules = {
-  username: [{ required: true, message: '请输入账号或邮箱', trigger: 'blur' }],
-  password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
+  username: [{ required: true, message: 'Please enter username or email', trigger: 'blur' }],
+  password: [{ required: true, message: 'Please enter password', trigger: 'blur' }]
 }
 
 const handleLogin = () => {
@@ -112,9 +118,9 @@ const handleLogin = () => {
     if (valid) {
       isLoading.value = true
       try {
-        const res = await axios.post('http://localhost:8080/api/login', loginForm.value)
+        const res = await axios.post('http://116.62.165.182:8080/api/login', loginForm.value)
         if (res.data.success) {
-          ElMessage.success(`欢迎回来！`)
+          ElMessage.success(`Welcome back!`)
           localStorage.setItem('currentUser', res.data.username)
           localStorage.setItem('userRole', res.data.role)
           router.push('/admin')
@@ -122,7 +128,7 @@ const handleLogin = () => {
           ElMessage.error(res.data.message)
         }
       } catch (err) {
-        ElMessage.error('无法连接到服务器')
+        ElMessage.error('Cannot connect to server')
       } finally {
         isLoading.value = false
       }
@@ -130,18 +136,24 @@ const handleLogin = () => {
   })
 }
 
-// --- PBI 1: 注册逻辑 (新增邮箱字段) ---
+// Registration logic
 const showReg = ref(false)
 const regRef = ref(null)
-const regForm = ref({ username: '', email: '', password: '', realName: '' })
+const regForm = ref({
+  username: '',
+  email: '',
+  password: '',
+  realName: '',
+  birthday: ''
+})
 const regRules = {
-  username: [{ required: true, message: '账号是必填项', trigger: 'blur' }],
+  username: [{ required: true, message: 'Username is required', trigger: 'blur' }],
   email: [
-    { required: true, message: '邮箱是必填项', trigger: 'blur' },
-    { type: 'email', message: '请输入正确的邮箱格式', trigger: ['blur', 'change'] }
+    { required: true, message: 'Email is required', trigger: 'blur' },
+    { type: 'email', message: 'Please enter correct email format', trigger: ['blur', 'change'] }
   ],
-  password: [{ required: true, message: '请设置密码', trigger: 'blur' }, { min: 6, message: '密码至少6位', trigger: 'blur' }],
-  realName: [{ required: true, message: '请输入您的称呼', trigger: 'blur' }]
+  password: [{ required: true, message: 'Please set password', trigger: 'blur' }, { min: 6, message: 'Password must be at least 6 characters', trigger: 'blur' }],
+  realName: [{ required: true, message: 'Please enter your name', trigger: 'blur' }]
 }
 
 const handleRegister = () => {
@@ -149,16 +161,16 @@ const handleRegister = () => {
     if (valid) {
       isRegLoading.value = true
       try {
-        const res = await axios.post('http://localhost:8080/api/users/register', regForm.value)
+        const res = await axios.post('http://116.62.165.182:8080/api/users/register', regForm.value)
         if (res.data.success) {
           ElMessage.success(res.data.message)
           showReg.value = false
           loginForm.value.username = regForm.value.username
         } else {
-          ElMessage.warning(res.data.message) // 账号或邮箱重复提示
+          ElMessage.warning(res.data.message)
         }
       } catch (err) {
-        ElMessage.error('注册失败，请检查网络')
+        ElMessage.error('Registration failed')
       } finally {
         isRegLoading.value = false
       }
@@ -166,7 +178,7 @@ const handleRegister = () => {
   })
 }
 
-// --- PBI 4: 找回密码逻辑 ---
+// Forgot password logic
 const forgotDialog = ref({ visible: false, step: 1, email: '', code: '', newPassword: '', loading: false })
 
 const openForgotPwd = () => {
@@ -174,54 +186,116 @@ const openForgotPwd = () => {
 }
 
 const sendCode = async () => {
-  if (!forgotDialog.value.email) return ElMessage.warning('请输入邮箱')
+  if (!forgotDialog.value.email) return ElMessage.warning('Please enter email')
   forgotDialog.value.loading = true
   try {
-    // 调用后端发邮件接口
-    const res = await axios.post(`http://localhost:8080/api/users/forgot-password?email=${forgotDialog.value.email}`)
+    const res = await axios.post(`http://116.62.165.182:8080/api/users/forgot-password?email=${forgotDialog.value.email}`)
     if (res.data.success) {
       ElMessage.success(res.data.message)
-      forgotDialog.value.step = 2 // 进入输入验证码那一步
+      forgotDialog.value.step = 2
     } else {
       ElMessage.error(res.data.message)
     }
   } catch (err) {
-    ElMessage.error('发送失败')
+    ElMessage.error('Sending failed')
   } finally {
     forgotDialog.value.loading = false
   }
 }
 
 const resetPwd = async () => {
-  if (!forgotDialog.value.code || !forgotDialog.value.newPassword) return ElMessage.warning('请填写完整')
+  if (!forgotDialog.value.code || !forgotDialog.value.newPassword) return ElMessage.warning('Please fill in completely')
   try {
-    const res = await axios.post(`http://localhost:8080/api/users/reset-password?email=${forgotDialog.value.email}&code=${forgotDialog.value.code}&newPassword=${forgotDialog.value.newPassword}`)
+    const res = await axios.post(`http://116.62.165.182:8080/api/users/reset-password?email=${forgotDialog.value.email}&code=${forgotDialog.value.code}&newPassword=${forgotDialog.value.newPassword}`)
     if (res.data.success) {
-      ElMessage.success('密码重置成功，请重新登录！')
+      ElMessage.success('Password reset successfully, please login again!')
       forgotDialog.value.visible = false
     } else {
       ElMessage.error(res.data.message)
     }
   } catch (err) {
-    ElMessage.error('重置失败')
+    ElMessage.error('Reset failed')
   }
 }
 </script>
 
 <style scoped>
-/* 保持一致的背景与毛玻璃特效 */
-.login-container { height: 100vh; width: 100vw; display: flex; justify-content: center; align-items: center; background: #1a1a2e; position: relative; overflow: hidden; }
-.glow-bg { position: absolute; width: 600px; height: 600px; background: radial-gradient(circle, rgba(64,158,255,0.3) 0%, rgba(26,26,46,0) 70%); top: 50%; left: 50%; transform: translate(-50%, -50%); animation: pulse 4s infinite alternate; }
-@keyframes pulse { 0% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; } 100% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; } }
-.login-box { width: 400px; padding: 40px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); z-index: 1; }
-.login-header { text-align: center; margin-bottom: 30px; }
-.title { color: #fff; font-size: 24px; margin: 0 0 10px 0; letter-spacing: 2px; }
-.subtitle { color: #a0a0b0; font-size: 13px; margin: 0; }
-.login-btn { width: 100%; border-radius: 8px; font-weight: bold; letter-spacing: 2px; background: linear-gradient(90deg, #409EFF, #36cfc9); border: none; transition: all 0.3s ease; height: 45px; }
-.login-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(64, 158, 255, 0.4); }
-.flex-between { display: flex; justify-content: space-between; align-items: center; }
-.login-footer { text-align: center; margin-top: 25px; font-size: 12px; color: #666; }
-:deep(.el-input__wrapper) { background-color: rgba(0, 0, 0, 0.2) !important; box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1) inset !important; }
-:deep(.el-input__inner) { color: #fff !important; }
-:deep(.el-form-item__label) { color: #ccc !important; }
+.back-home-btn {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 100;
+  font-size: 15px;
+  color: #666;
+  padding: 8px 16px;
+  border: 1px solid #ddd;
+  background: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.back-home-btn:hover {
+  color: #111;
+  border-color: #999;
+}
+
+.login-page {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #ffffff;
+}
+
+.login-box {
+  width: 420px;
+  padding: 50px 40px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  border: 1px solid #eee;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.login-header h2 {
+  font-size: 2.4rem;
+  font-weight: 700;
+  letter-spacing: 6px;
+  color: #111;
+  margin-bottom: 8px;
+}
+
+.login-header p {
+  color: #666;
+  font-size: 15px;
+}
+
+.login-btn {
+  width: 100%;
+  height: 52px;
+  font-size: 17px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  background-color: #1e3a5f !important;
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+}
+
+.login-footer {
+  text-align: center;
+  margin-top: 30px;
+  font-size: 13px;
+  color: #999;
+}
+
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 </style>

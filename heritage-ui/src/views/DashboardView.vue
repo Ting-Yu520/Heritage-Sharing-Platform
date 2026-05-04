@@ -1,34 +1,33 @@
 <template>
-  <div>
-    <h2>📊 控制台大厅</h2>
+  <div class="dashboard-page">
+    <div class="page-header">
+      <h1>Dashboard</h1>
+      <p>Welcome back, {{ displayRole }}: {{ currentName }} • Overview of the platform</p>
+    </div>
 
-    <el-card style="margin-bottom: 20px;">
-      <h3>欢迎回来，{{ displayRole }}：{{ currentName }}！</h3>
-      <p style="color: #666;">这是您今天的系统概览。传承文化，守护历史，感谢您的贡献。</p>
-    </el-card>
-
-    <el-row :gutter="20">
+    <!-- Stat cards (styles only, structure unchanged) -->
+    <el-row :gutter="24">
       <el-col :span="6">
         <el-card shadow="hover" class="stat-card">
-          <template #header>📦 资源总数</template>
+          <template #header>Total Resources</template>
           <div class="stat-number">{{ stats.total }}</div>
         </el-card>
       </el-col>
       <el-col :span="6">
         <el-card shadow="hover" class="stat-card">
-          <template #header>⏳ 待审核</template>
+          <template #header>Pending Review</template>
           <div class="stat-number" style="color: #E6A23C;">{{ stats.pending }}</div>
         </el-card>
       </el-col>
       <el-col :span="6">
         <el-card shadow="hover" class="stat-card">
-          <template #header>✅ 已发布</template>
+          <template #header>Published</template>
           <div class="stat-number" style="color: #67C23A;">{{ stats.published }}</div>
         </el-card>
       </el-col>
       <el-col :span="6">
         <el-card shadow="hover" class="stat-card">
-          <template #header>🛡️ 审计日志</template>
+          <template #header>Audit Logs</template>
           <div class="stat-number" style="color: #409EFF;">{{ stats.logs }}</div>
         </el-card>
       </el-col>
@@ -40,9 +39,9 @@
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 
-const currentName = ref(localStorage.getItem('currentUser') || '访客')
+const currentName = ref(localStorage.getItem('currentUser') || 'Guest')
 const role = localStorage.getItem('userRole')
-const displayRole = role === 'ADMIN' ? '超级管理员' : '文化贡献者'
+const displayRole = role === 'ADMIN' ? 'Super Admin' : 'Cultural Contributor'
 
 const stats = ref({
   total: 0,
@@ -51,21 +50,19 @@ const stats = ref({
   logs: 0
 })
 
-// 获取统计数据的逻辑
+// Keep the original data loading logic unchanged
 const fetchStats = async () => {
   try {
-    // 我们可以从之前的接口里直接计算出这些数字
-    const res = await axios.get('http://localhost:8080/api/resources')
+    const res = await axios.get('http://116.62.165.182:8080/api/resources')
     const allData = res.data
     stats.value.total = allData.length
     stats.value.pending = allData.filter(i => i.status === 0).length
     stats.value.published = allData.filter(i => i.status === 1).length
 
-    // 获取日志数量
-    const logRes = await axios.get('http://localhost:8080/api/audit-logs')
+    const logRes = await axios.get('http://116.62.165.182:8080/api/audit-logs')
     stats.value.logs = logRes.data.length
   } catch (e) {
-    console.error("加载统计数据失败")
+    console.error("Failed to load statistical data")
   }
 }
 
@@ -73,6 +70,48 @@ onMounted(fetchStats)
 </script>
 
 <style scoped>
-.stat-card { text-align: center; border-radius: 12px; }
-.stat-number { font-size: 32px; font-weight: bold; padding: 10px 0; }
+.dashboard-page {
+  padding: 40px;
+  max-width: 1280px;
+  margin: 0 auto;
+  background: #fff;
+}
+
+.page-header h1 {
+  font-size: 2.8rem;
+  font-weight: 300;
+  letter-spacing: -2px;
+  color: #111;
+  margin-bottom: 8px;
+}
+
+.page-header p {
+  font-size: 1.1rem;
+  color: #666;
+}
+
+.stat-card {
+  border: none;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  transition: transform 0.3s ease;
+  text-align: center;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+}
+
+.stat-card :deep(.el-card__header) {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #111;
+  padding-bottom: 12px;
+}
+
+.stat-number {
+  font-size: 2.6rem;
+  font-weight: 500;
+  padding: 12px 0;
+  color: #111;
+}
 </style>

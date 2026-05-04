@@ -3,6 +3,7 @@ package com.heritage.platform.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @TableName("user")
@@ -17,14 +18,17 @@ public class User {
     private String nickname;
     private String avatar;
 
-    // ✨ PBI 5 新增：通知偏好设置
+    // Notification preferences
     private Integer notifyReview;
     private Integer notifyComment;
     private Integer notifySystem;
 
+    // ✨ New: birthday
+    private LocalDate birthday;
+
     private LocalDateTime createdAt;
 
-    // Getters and Setters
+    // ========== Getters and Setters ==========
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getUsername() { return username; }
@@ -48,6 +52,9 @@ public class User {
     public void setNotifyComment(Integer notifyComment) { this.notifyComment = notifyComment; }
     public Integer getNotifySystem() { return notifySystem; }
     public void setNotifySystem(Integer notifySystem) { this.notifySystem = notifySystem; }
+
+    public LocalDate getBirthday() { return birthday; }
+    public void setBirthday(LocalDate birthday) { this.birthday = birthday; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

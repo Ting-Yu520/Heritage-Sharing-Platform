@@ -1,35 +1,50 @@
+/* ==================== Luxury white background + black text ==================== */
 @import './base.css';
 
-#app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  font-weight: normal;
+:root {
+  --primary: #1e3a2f;      /* Primary - deep teal green */
+  --text: #1f2937;         /* Primary text color */
+  --bg: #ffffff;           /* Pure white background */
+  --light-bg: #f8f5f0;     /* Light beige accent background */
+  --border: #e5e5e5;
 }
 
-a,
-.green {
-  text-decoration: none;
-  color: hsla(160, 100%, 37%, 1);
-  transition: 0.4s;
-  padding: 3px;
+/* Global background and typography */
+body, #app, html {
+  background: var(--bg) !important;
+  color: var(--text) !important;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
 }
 
-@media (hover: hover) {
-  a:hover {
-    background-color: hsla(160, 100%, 37%, 0.2);
-  }
+/* Top navigation bar - luxury white */
+.el-header {
+  background-color: #ffffff !important;
+  border-bottom: 1px solid #e5e5e5 !important;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06) !important;
 }
 
-@media (min-width: 1024px) {
-  body {
-    display: flex;
-    place-items: center;
-  }
+/* Buttons - unified premium style */
+.el-button--primary {
+  background-color: var(--primary) !important;
+  color: white !important;
+  border: none !important;
+  font-weight: 500;
+}
 
-  #app {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    padding: 0 2rem;
-  }
+/* Sidebar */
+.el-aside {
+  background-color: #f8f5f0 !important;
+  border-right: 1px solid #e5e5e5 !important;
+}
+
+/* Cards and content area */
+.el-card, .el-main {
+  background: #ffffff !important;
+  border: 1px solid #e5e5e5 !important;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important;
+}
+
+/* Remove leftover legacy styles */
+.glow-bg, .hero-old, [style*="linear-gradient"] {
+  display: none !important;
 }

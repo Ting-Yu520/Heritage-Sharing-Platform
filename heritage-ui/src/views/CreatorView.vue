@@ -1,54 +1,54 @@
 <template>
-  <div class="creator-container">
-    <div class="header-banner">
-      <h2>🎨 创作者服务中心</h2>
-      <p>在这里发布您的文化发现，管理您的稿件与草稿。</p>
+  <div class="creator-page">
+    <div class="page-header">
+      <h1>Creator Center</h1>
+      <p>Publish your cultural discoveries and manage your submissions and drafts here.</p>
     </div>
 
     <el-card class="main-card" shadow="hover">
       <el-tabs v-model="activeTab" @tab-click="handleTabClick">
 
-        <el-tab-pane label="🗂️ 我的稿件与草稿" name="list">
+        <el-tab-pane label="My Submissions & Drafts" name="list">
           <el-table :data="resourceList" border stripe v-loading="loading" style="width: 100%; margin-top: 10px;">
-            <el-table-column label="封面" width="120" align="center">
+            <el-table-column label="Cover" width="120" align="center">
               <template #default="scope">
-                <el-image :src="scope.row.thumbnail || 'https://via.placeholder.com/100'" style="width: 80px; height: 50px; border-radius: 4px;" fit="cover" />
+                <el-image :src="scope.row.thumbnail || 'https://picsum.photos/id/1015/800/1000'" style="width: 80px; height: 50px; border-radius: 4px;" fit="cover" />
               </template>
             </el-table-column>
 
-            <el-table-column prop="title" label="稿件标题" min-width="180" show-overflow-tooltip>
+            <el-table-column prop="title" label="Submission Title" min-width="180" show-overflow-tooltip>
               <template #default="scope">
-                <strong>{{ scope.row.title || '无标题草稿' }}</strong>
+                <strong>{{ scope.row.title || 'Untitled Draft' }}</strong>
               </template>
             </el-table-column>
 
-            <el-table-column prop="category" label="分类" width="120" />
+            <el-table-column prop="category" label="Category" width="140" />
 
-            <el-table-column label="当前状态" width="120" align="center">
+            <el-table-column label="Current Status" width="140" align="center">
               <template #default="scope">
-                <el-tag v-if="scope.row.status === -1" type="info">📝 草稿箱</el-tag>
-                <el-tag v-else-if="scope.row.status === 0" type="warning">⏳ 审核中</el-tag>
-                <el-tag v-else-if="scope.row.status === 1" type="success">✅ 已发布</el-tag>
-                <el-tag v-else-if="scope.row.status === 2" type="danger">❌ 被驳回</el-tag>
-                <el-tag v-else-if="scope.row.status === 3" type="info" effect="dark">📦 已归档</el-tag>
-                <el-tag v-else-if="scope.row.status === 4" type="info" effect="plain">↩️ 已撤回</el-tag>
+                <el-tag v-if="scope.row.status === -1" type="info">Draft</el-tag>
+                <el-tag v-else-if="scope.row.status === 0" type="warning">Under Review</el-tag>
+                <el-tag v-else-if="scope.row.status === 1" type="success">Published</el-tag>
+                <el-tag v-else-if="scope.row.status === 2" type="danger">Rejected</el-tag>
+                <el-tag v-else-if="scope.row.status === 3" type="info">Archived</el-tag>
+                <el-tag v-else-if="scope.row.status === 4" type="info">Withdrawn</el-tag>
               </template>
             </el-table-column>
 
-            <el-table-column prop="updatedAt" label="最后修改时间" width="170" />
+            <el-table-column prop="updatedAt" label="Last Modified" width="170" />
 
-            <el-table-column label="操作" width="220" align="center" fixed="right">
+            <el-table-column label="Actions" width="300" align="center" fixed="right">
               <template #default="scope">
-                <el-button v-if="scope.row.status === 0" size="small" type="warning" plain @click="withdraw(scope.row.id)">撤回稿件</el-button>
-
-                <el-button v-if="[-1, 2, 4].includes(scope.row.status)" size="small" type="primary" @click="editResource(scope.row)">继续编辑</el-button>
-
-                <el-button v-if="scope.row.status === 1" size="small" type="success" plain @click="router.push(`/resource/${scope.row.id}`)">查看详情</el-button>
+                <el-button v-if="scope.row.status === 0" size="small" type="warning" plain @click="withdraw(scope.row.id)">Withdraw</el-button>
+                <el-button v-if="[-1, 2, 4].includes(scope.row.status)" size="small" type="primary" @click="editResource(scope.row)">Continue Editing</el-button>
+                <el-button v-if="scope.row.status === 1" size="small" type="success" plain @click="router.push(`/resource/${scope.row.id}`)">View Details</el-button>
+                <!-- ✨ New: delete button -->
+                <el-button size="small" type="danger" plain @click="handleDelete(scope.row)">Delete</el-button>
               </template>
             </el-table-column>
 
             <template #empty>
-              <el-empty description="您还没有发布过任何稿件哦，快去投稿吧！" />
+              <el-empty description="You haven't published any submissions yet" />
             </template>
           </el-table>
 
@@ -57,57 +57,57 @@
           </div>
         </el-tab-pane>
 
-        <el-tab-pane :label="isEditing ? '✏️ 编辑稿件' : '🚀 发布新资源'" name="publish">
+        <el-tab-pane :label="isEditing ? 'Edit Submission' : 'Publish New Resource'" name="publish">
           <div class="publish-form-wrap">
-            <el-alert v-if="isEditing" title="您正在编辑已有的稿件。如果直接提交审核，将会覆盖原有内容。" type="info" show-icon style="margin-bottom: 20px;" />
+            <el-alert v-if="isEditing" title="You are editing an existing submission. If you submit for review directly, it will overwrite the original content." type="info" show-icon style="margin-bottom: 20px;" />
 
-            <el-form :model="form" :rules="rules" ref="resourceFormRef" label-width="100px" v-loading="submitting">
-              <el-form-item label="资源标题" prop="title">
-                <el-input v-model="form.title" placeholder="请输入引人注目的标题 (必填)" maxlength="100" show-word-limit />
+            <el-form :model="form" :rules="rules" ref="resourceFormRef" label-width="110px" v-loading="submitting">
+              <el-form-item label="Resource Title" prop="title">
+                <el-input v-model="form.title" placeholder="Please enter an eye-catching title (Required)" maxlength="100" show-word-limit />
               </el-form-item>
 
               <el-row :gutter="20">
                 <el-col :span="12">
-                  <el-form-item label="所属分类" prop="category">
-                    <el-select v-model="form.category" placeholder="请选择资源分类" style="width: 100%;">
-                      <el-option label="非物质文化遗产" value="非物质文化遗产" />
-                      <el-option label="历史古迹/建筑" value="历史古迹/建筑" />
-                      <el-option label="民俗活动" value="民俗活动" />
-                      <el-option label="传统技艺/手工艺" value="传统技艺/手工艺" />
-                      <el-option label="口头传统/神话" value="口头传统/神话" />
+                  <el-form-item label="Category" prop="category">
+                    <el-select v-model="form.category" placeholder="Please select resource category" style="width: 100%;">
+                      <el-option label="Intangible Cultural Heritage" value="Intangible Cultural Heritage" />
+                      <el-option label="Historical Sites / Architecture" value="Historical Sites / Architecture" />
+                      <el-option label="Folk Activities" value="Folk Activities" />
+                      <el-option label="Traditional Crafts / Handicrafts" value="Traditional Crafts / Handicrafts" />
+                      <el-option label="Oral Traditions / Myths" value="Oral Traditions / Myths" />
                     </el-select>
                   </el-form-item>
                 </el-col>
                 <el-col :span="12">
-                  <el-form-item label="地理位置" prop="location">
-                    <el-input v-model="form.location" placeholder="例如：江苏省苏州市平江路" />
+                  <el-form-item label="Location" prop="location">
+                    <el-input v-model="form.location" placeholder="e.g., Pingjiang Road, Suzhou, Jiangsu Province" />
                   </el-form-item>
                 </el-col>
               </el-row>
 
-              <el-form-item label="封面图 URL" prop="thumbnail">
+              <el-form-item label="Cover Image URL" prop="thumbnail">
                 <div style="display: flex; gap: 15px; width: 100%;">
-                  <el-input v-model="form.thumbnail" placeholder="请输入封面图片的网络链接 (必填)" clearable />
+                  <el-input v-model="form.thumbnail" placeholder="Please enter the network link for the cover image (Required)" clearable />
                   <el-image v-if="form.thumbnail" :src="form.thumbnail" style="width: 60px; height: 60px; border-radius: 4px;" fit="cover" />
                 </div>
               </el-form-item>
 
-              <el-form-item label="附件/视频" prop="mediaUrl">
-                <el-input v-model="form.mediaUrl" placeholder="如有相关视频或外部资料，请输入链接 (选填)" clearable />
+              <el-form-item label="Attachments/Videos" prop="mediaUrl">
+                <el-input v-model="form.mediaUrl" placeholder="If there are related videos or external materials, please enter the link (Optional)" clearable />
               </el-form-item>
 
-              <el-form-item label="相关标签" prop="tags">
-                <el-input v-model="form.tags" placeholder="多个标签请用英文逗号 (,) 隔开，例如：手工艺,苏州,明清" clearable />
+              <el-form-item label="Related Tags" prop="tags">
+                <el-input v-model="form.tags" placeholder="Separate multiple tags with commas, e.g., handicrafts,suzhou,mingqing" clearable />
               </el-form-item>
 
-              <el-form-item label="详细描述" prop="description">
-                <el-input v-model="form.description" type="textarea" :rows="8" placeholder="详细描述该文化遗产的历史背景、现状、文化价值等... (必填)" maxlength="5000" show-word-limit />
+              <el-form-item label="Detailed Description" prop="description">
+                <el-input v-model="form.description" type="textarea" :rows="8" placeholder="Describe the historical background, current status, cultural value, etc. of this cultural heritage in detail... (Required)" maxlength="5000" show-word-limit />
               </el-form-item>
 
               <el-form-item style="margin-top: 30px;">
-                <el-button type="info" plain @click="submit( -1 )" style="width: 150px;">💾 保存到草稿箱</el-button>
-                <el-button type="primary" @click="submit( 0 )" style="width: 150px;">🚀 提交管理员审核</el-button>
-                <el-button v-if="isEditing" @click="resetForm" style="margin-left: 20px;">取消编辑</el-button>
+                <el-button type="info" plain @click="submit(-1)" style="width: 160px;">Save to Draft</el-button>
+                <el-button type="primary" @click="submit(0)" style="width: 160px;">Submit for Review</el-button>
+                <el-button v-if="isEditing" @click="resetForm" style="margin-left: 20px;">Cancel Edit</el-button>
               </el-form-item>
             </el-form>
           </div>
@@ -128,13 +128,13 @@ const router = useRouter()
 const currentUsername = localStorage.getItem('currentUser')
 const activeTab = ref('list')
 
-// --- 列表状态 ---
+// List Status
 const resourceList = ref([])
 const loading = ref(false)
 const currentPage = ref(1)
 const total = ref(0)
 
-// --- 表单状态 ---
+// Form Status
 const resourceFormRef = ref(null)
 const submitting = ref(false)
 const isEditing = ref(false)
@@ -144,98 +144,114 @@ const form = ref({
   title: '', category: '', thumbnail: '', mediaUrl: '', tags: '', location: '', description: '', contributorUsername: currentUsername
 })
 
-// 表单验证规则 (PBI 1 验收标准: 必须有强制字段)
 const rules = {
-  title: [{ required: true, message: '请输入资源标题', trigger: 'blur' }],
-  category: [{ required: true, message: '请选择分类', trigger: 'change' }],
-  thumbnail: [{ required: true, message: '必须提供封面图链接', trigger: 'blur' }],
-  description: [{ required: true, message: '必须填写详细描述', trigger: 'blur' }]
+  title: [{ required: true, message: 'Please enter resource title', trigger: 'blur' }],
+  category: [{ required: true, message: 'Please select category', trigger: 'change' }],
+  thumbnail: [{ required: true, message: 'Must provide cover image link', trigger: 'blur' }],
+  description: [{ required: true, message: 'Must fill in detailed description', trigger: 'blur' }]
 }
 
-// 1. 获取我的稿件列表
 const fetchMyResources = async () => {
   if (!currentUsername) return
   loading.value = true
   try {
-    const res = await axios.get(`http://localhost:8080/api/my-resources?username=${currentUsername}&current=${currentPage.value}&size=10`)
+    const res = await axios.get(`http://116.62.165.182:8080/api/my-resources?username=${currentUsername}&current=${currentPage.value}&size=10`)
     resourceList.value = res.data.records.map(item => ({
-      ...item, updatedAt: item.updatedAt ? item.updatedAt.substring(0, 16).replace('T', ' ') : ''
+      ...item,
+      updatedAt: item.updatedAt ? item.updatedAt.substring(0, 16).replace('T', ' ') : ''
     }))
     total.value = res.data.total
   } catch (error) {
-    ElMessage.error('获取稿件列表失败')
+    ElMessage.error('Failed to get submissions list')
   } finally {
     loading.value = false
   }
 }
 
-// 2. 提交表单 (草稿 status=-1, 待审 status=0)
 const submit = (status) => {
   resourceFormRef.value.validate(async (valid) => {
     if (!valid && status === 0) {
-      ElMessage.warning('请将带红星的必填项填写完整后再提交审核！')
+      ElMessage.warning('Please complete all required fields with red stars before submitting for review!')
       return
     }
 
-    // 如果是存草稿，可以不校验直接发，只需给个默认标题
-    if (!form.value.title && status === -1) form.value.title = '未命名草稿 ' + new Date().toLocaleTimeString()
+    if (!form.value.title && status === -1) form.value.title = 'Untitled Draft ' + new Date().toLocaleTimeString()
 
     submitting.value = true
     try {
-      let res;
+      let res
       if (isEditing.value) {
-        // 修改已有稿件
-        res = await axios.put(`http://localhost:8080/api/my-resources/${editId.value}?status=${status}`, form.value)
+        res = await axios.put(`http://116.62.165.182:8080/api/my-resources/${editId.value}?status=${status}`, form.value)
       } else {
-        // 新增稿件
-        res = await axios.post(`http://localhost:8080/api/my-resources/submit?status=${status}`, form.value)
+        res = await axios.post(`http://116.62.165.182:8080/api/my-resources/submit?status=${status}`, form.value)
       }
 
       if (res.data.success) {
         ElMessage.success(res.data.message)
         resetForm()
-        activeTab.value = 'list' // 切回列表页
-        fetchMyResources() // 刷新列表
+        activeTab.value = 'list'
+        fetchMyResources()
       } else {
         ElMessage.error(res.data.message)
       }
     } catch (error) {
-      ElMessage.error('操作失败，网络错误')
+      ElMessage.error('Operation failed, network error')
     } finally {
       submitting.value = false
     }
   })
 }
 
-// 3. 撤回正在审核的稿件 (PBI 4)
 const withdraw = (id) => {
-  ElMessageBox.confirm('确定要撤回这篇稿件吗？撤回后将移出审核队列，变为“已撤回”状态。', '撤回确认', {
-    confirmButtonText: '确定撤回', cancelButtonText: '取消', type: 'warning'
+  ElMessageBox.confirm('Are you sure you want to withdraw this submission?', 'Withdrawal Confirmation', {
+    confirmButtonText: 'Confirm', cancelButtonText: 'Cancel', type: 'warning'
   }).then(async () => {
     try {
-      const res = await axios.put(`http://localhost:8080/api/my-resources/${id}/withdraw`)
+      const res = await axios.put(`http://116.62.165.182:8080/api/my-resources/${id}/withdraw`)
       if (res.data.success) {
         ElMessage.success(res.data.message)
         fetchMyResources()
       } else {
         ElMessage.error(res.data.message)
       }
-    } catch (error) { ElMessage.error('撤回失败') }
+    } catch (error) { ElMessage.error('Withdrawal failed') }
   }).catch(() => {})
 }
 
-// 4. 继续编辑 (PBI 3 & 5)
+/**
+ * ✨ New: delete submission
+ */
+const handleDelete = (row) => {
+  ElMessageBox.confirm(
+    `Are you sure you want to permanently delete the submission "${row.title || 'Untitled Draft'}"? This action cannot be undone!`,
+    'Delete Confirmation',
+    {
+      confirmButtonText: 'Delete',
+      cancelButtonText: 'Cancel',
+      type: 'warning'
+    }
+  ).then(async () => {
+    try {
+      const res = await axios.delete(`http://116.62.165.182:8080/api/my-resources/${row.id}`)
+      if (res.data.success) {
+        ElMessage.success(res.data.message)
+        fetchMyResources()
+      } else {
+        ElMessage.error(res.data.message)
+      }
+    } catch (error) {
+      ElMessage.error('Deletion failed')
+    }
+  }).catch(() => {})
+}
+
 const editResource = (row) => {
   isEditing.value = true
   editId.value = row.id
-  form.value = {
-    title: row.title, category: row.category, thumbnail: row.thumbnail, mediaUrl: row.mediaUrl,
-    tags: row.tags, location: row.location, description: row.description, contributorUsername: currentUsername
-  }
-  activeTab.value = 'publish' // 自动切换到编辑标签页
+  form.value = { ...row, contributorUsername: currentUsername }
+  activeTab.value = 'publish'
 }
 
-// 5. 重置表单
 const resetForm = () => {
   if (resourceFormRef.value) resourceFormRef.value.resetFields()
   form.value = { title: '', category: '', thumbnail: '', mediaUrl: '', tags: '', location: '', description: '', contributorUsername: currentUsername }
@@ -251,12 +267,44 @@ onMounted(() => { fetchMyResources() })
 </script>
 
 <style scoped>
-.creator-container { padding: 10px 20px; max-width: 1200px; margin: 0 auto; }
-.header-banner { background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%); padding: 30px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-left: 6px solid #409EFF; }
-.header-banner h2 { margin: 0 0 10px 0; color: #303133; }
-.header-banner p { margin: 0; color: #606266; font-size: 14px; }
-.main-card { min-height: 600px; }
-:deep(.el-tabs__item) { font-size: 16px; font-weight: bold; }
-.publish-form-wrap { max-width: 800px; margin: 20px auto 0; }
-.pagination-wrap { display: flex; justify-content: flex-end; margin-top: 20px; }
+.creator-page {
+  padding: 40px;
+  max-width: 1280px;
+  margin: 0 auto;
+  background: #fff;
+}
+
+.page-header h1 {
+  font-size: 2.8rem;
+  font-weight: 300;
+  letter-spacing: -2px;
+  color: #111;
+  margin-bottom: 8px;
+}
+
+.page-header p {
+  font-size: 1.1rem;
+  color: #666;
+}
+
+.main-card {
+  border: none;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+}
+
+:deep(.el-tabs__item) {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.publish-form-wrap {
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.pagination-wrap {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
 </style>

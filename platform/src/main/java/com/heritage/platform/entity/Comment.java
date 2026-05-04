@@ -23,11 +23,17 @@ public class Comment {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    // ✨ 用于前端展示“楼中楼”的嵌套子评论列表 (数据库里没有这个字段，所以加上 exist = false)
+    // Nested replies for frontend display
     @TableField(exist = false)
     private List<Comment> children;
 
-    // Getters and Setters
+    // ✨ New: whether the current user liked/disliked this comment (not persisted)
+    @TableField(exist = false)
+    private Boolean isLiked;
+    @TableField(exist = false)
+    private Boolean isDisliked;
+
+    // ============ Getters/setters ============
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public Long getResourceId() { return resourceId; }
@@ -54,4 +60,10 @@ public class Comment {
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
     public List<Comment> getChildren() { return children; }
     public void setChildren(List<Comment> children) { this.children = children; }
+
+    // ✨ New getters/setters
+    public Boolean getIsLiked() { return isLiked; }
+    public void setIsLiked(Boolean isLiked) { this.isLiked = isLiked; }
+    public Boolean getIsDisliked() { return isDisliked; }
+    public void setIsDisliked(Boolean isDisliked) { this.isDisliked = isDisliked; }
 }

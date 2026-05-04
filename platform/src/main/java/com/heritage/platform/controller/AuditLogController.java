@@ -1,5 +1,6 @@
 package com.heritage.platform.controller;
 
+import com.heritage.platform.config.RoleCheck;
 import com.heritage.platform.entity.AuditLog;
 import com.heritage.platform.mapper.AuditLogMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +16,7 @@ public class AuditLogController {
     @Autowired
     private AuditLogMapper auditLogMapper;
 
-    // 获取所有审计日志
+    @RoleCheck("ADMIN")
     @GetMapping("/api/audit-logs")
     public List<AuditLog> getAllLogs() {
         return auditLogMapper.selectList(null);

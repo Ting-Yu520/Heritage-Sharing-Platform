@@ -6,5 +6,5 @@ import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
 public interface CategoryMapper extends BaseMapper<Category> {
-    // 继承了 BaseMapper 之后，insert、selectList、updateById 等方法就自动拥有了！
+    // Inheriting BaseMapper provides insert/selectList/updateById and more out of the box
 }

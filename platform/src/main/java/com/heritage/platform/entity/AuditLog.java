@@ -6,13 +6,13 @@ import java.time.LocalDateTime;
 public class AuditLog {
     @TableId(type = IdType.AUTO)
     private Long id;
-    private String userId = "Admin_01"; // 模拟当前登录的管理员
+    private String userId = "Admin_01"; // Simulated current logged-in admin
     private String actionType;
     private Long resourceId;
     private String changesSummary;
     private LocalDateTime createdAt;
 
-    // Getters and Setters (如果你没装Lombok，请手动生成或复制下面的)
+    // Getters and Setters (if Lombok is not enabled, keep these methods)
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getUserId() { return userId; }

@@ -21,7 +21,7 @@ public class NotificationController {
     @Autowired private UserMapper userMapper;
 
     /**
-     * PBI 3: 获取聚合通知列表
+     * PBI 3: Get notification list
      */
     @GetMapping("/api/notifications")
     public List<Notification> getNotifications(@RequestParam String username) {
@@ -31,7 +31,7 @@ public class NotificationController {
     }
 
     /**
-     * PBI 4: 单条标记已读
+     * PBI 4: Mark one as read
      */
     @PutMapping("/api/notifications/{id}/read")
     public String markAsRead(@PathVariable Long id) {
@@ -44,7 +44,7 @@ public class NotificationController {
     }
 
     /**
-     * ✨ PBI 4: 一键全部标为已读
+     * ✨ PBI 4: Mark all as read
      */
     @PutMapping("/api/notifications/mark-all-read")
     public String markAllAsRead(@RequestParam String username) {
@@ -55,7 +55,7 @@ public class NotificationController {
     }
 
     /**
-     * ✨ PBI 5: 更新通知偏好设置
+     * ✨ PBI 5: Update notification preferences
      */
     @PutMapping("/api/users/preferences")
     public Map<String, Object> updatePreferences(@RequestParam String username, @RequestBody User prefs) {
@@ -68,7 +68,7 @@ public class NotificationController {
             userMapper.updateById(user);
 
             res.put("success", true);
-            res.put("message", "通知偏好设置已保存！");
+            res.put("message", "Notification preferences saved!");
         } else {
             res.put("success", false);
         }
