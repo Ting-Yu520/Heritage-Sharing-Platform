@@ -1,11 +1,11 @@
 <template>
   <div class="home-page">
-    <!-- Hero section (unchanged) -->
+    <!-- Hero section -->
     <div class="hero">
       <h1>DISCOVER OUR<br>SHARED HERITAGE</h1>
       <p class="subtitle">Stories, traditions and treasures from communities around the world</p>
-      
-      <!-- [Change only here] Search bar - match the latest mock exactly; keep button on the same row -->
+
+      <!-- Search bar -->
       <div class="search-bar">
         <el-input
           v-model="searchKeyword"
@@ -18,13 +18,13 @@
     </div>
 
     <div class="main-content">
-      <!-- Category Navigation (unchanged) -->
+      <!-- Category navigation -->
       <div class="categories-bar">
         <span class="label">CATEGORY NAVIGATION</span>
         <div class="tags">
           <el-tag :effect="activeCategory === '' ? 'dark' : 'plain'" @click="selectCategory('')">ALL</el-tag>
-          <el-tag 
-            v-for="(count, name) in categoryCounts" 
+          <el-tag
+            v-for="(count, name) in categoryCounts"
             :key="name"
             :effect="activeCategory === name ? 'dark' : 'plain'"
             @click="selectCategory(name)">
@@ -33,18 +33,21 @@
         </div>
       </div>
 
-      <!-- Everything below is unchanged (card grid restored) -->
       <el-alert v-if="errorMsg" type="error" show-icon closable>{{ errorMsg }}</el-alert>
 
+      <!-- Resource card grid -->
       <div class="resource-grid" v-loading="loading">
         <el-card v-for="item in resourceList" :key="item.id" class="resource-card" @click="goToDetail(item.id)">
           <img :src="item.thumbnail || 'https://picsum.photos/id/1015/800/1000'" class="card-img" />
           <div class="card-info">
             <el-tag size="small">{{ item.category }}</el-tag>
             <h3>{{ item.title }}</h3>
-            <p class="desc">{{ item.description }}</p>
+            <!-- Only key metadata: location and contributor -->
             <div class="meta">
-              <span>by {{ item.contributorUsername }}</span>
+              <span><el-icon><Location /></el-icon> {{ item.location || 'Unrecorded' }}</span>
+              <span><el-icon><User /></el-icon> {{ item.contributorUsername }}</span>
+            </div>
+            <div class="meta time">
               <span>{{ formatDate(item.createdAt) }}</span>
             </div>
           </div>
@@ -71,6 +74,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
+import { Location, User } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const loading = ref(false)
@@ -82,6 +86,7 @@ const activeCategory = ref('')
 const currentPage = ref(1)
 const totalResources = ref(0)
 
+// Fetch category counts from the server
 const fetchCategoryCounts = async () => {
   try {
     const res = await axios.get('http://116.62.165.182:8080/api/public/categories/count')
@@ -89,6 +94,7 @@ const fetchCategoryCounts = async () => {
   } catch (e) {}
 }
 
+// Fetch resources with optional search keyword and category filter
 const fetchResources = async () => {
   loading.value = true
   errorMsg.value = ''
@@ -106,21 +112,26 @@ const fetchResources = async () => {
   }
 }
 
+// Trigger search
 const handleSearch = () => {
   currentPage.value = 1
   fetchResources()
 }
 
+// Select a category filter
 const selectCategory = (cat) => {
   activeCategory.value = cat
   currentPage.value = 1
   fetchResources()
 }
 
+// Navigate to resource detail page
 const goToDetail = (id) => router.push(`/resource/${id}`)
 
+// Format date string (e.g., 2026-05-06T12:34:56 -> 2026-05-06)
 const formatDate = (dateStr) => dateStr ? dateStr.substring(0, 10) : ''
 
+// Initial data loading
 onMounted(() => {
   fetchCategoryCounts()
   fetchResources()
@@ -152,7 +163,7 @@ onMounted(() => {
   opacity: 0.95;
 }
 
-/* [Change only here] Search bar - compact + force single row */
+/* Search bar */
 .search-bar {
   max-width: 780px;
   margin: 40px auto 0;
@@ -186,17 +197,26 @@ onMounted(() => {
   border-radius: 0;
 }
 
-/* Everything below is unchanged */
+/* Category navigation bar */
 .categories-bar { display: flex; align-items: center; padding: 40px 0 20px; border-bottom: 1px solid #eee; }
 .label { font-size: 13px; letter-spacing: 3px; font-weight: 500; margin-right: 32px; color: #555; }
 .tags { display: flex; gap: 14px; }
+
+/* Resource card grid */
 .resource-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 32px; padding: 40px 0; }
 .resource-card { border: none; box-shadow: 0 4px 20px rgba(0,0,0,0.08); transition: transform 0.4s ease; }
 .resource-card:hover { transform: translateY(-8px); }
 .card-img { width: 100%; height: 260px; object-fit: cover; }
 .card-info { padding: 24px; }
-.card-info h3 { font-size: 1.4rem; font-weight: 500; margin: 12px 0 8px; }
-.desc { color: #555; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; overflow: hidden; }
-.meta { margin-top: 16px; font-size: 0.9rem; color: #777; display: flex; justify-content: space-between; }
+.card-info h3 { font-size: 1.3rem; font-weight: 500; margin: 10px 0 8px; }
+
+/* Metadata rows */
+.meta { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 8px; font-size: 0.85rem; color: #777; }
+.meta.time { margin-top: 4px; font-size: 0.8rem; }
+
+/* Hide original description if present */
+.desc { display: none; }
+
+/* Pagination */
 .pagination-wrap { display: flex; justify-content: center; margin-top: 60px; }
 </style>

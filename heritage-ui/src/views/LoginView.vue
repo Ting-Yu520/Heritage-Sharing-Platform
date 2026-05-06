@@ -185,7 +185,7 @@ const handleLogin = () => {
     if (valid) {
       isLoading.value = true
       try {
-        const res = await axios.post('http://localhost:8080/api/login', loginForm.value)
+        const res = await axios.post('http://116.62.165.182:8080/api/login', loginForm.value)
         if (res.data.success) {
           ElMessage.success('Welcome back!')
           localStorage.setItem('currentUser', res.data.username)
@@ -235,7 +235,7 @@ const handleRegister = () => {
     if (valid) {
       isRegLoading.value = true
       try {
-        const res = await axios.post('http://localhost:8080/api/users/register', regForm.value)
+        const res = await axios.post('http://116.62.165.182:8080/api/users/register', regForm.value)
         if (res.data.success) {
           ElMessage.success(res.data.message)
           showReg.value = false
@@ -264,7 +264,7 @@ const sendCode = async () => {
   if (!forgotDialog.value.email) return ElMessage.warning('Please enter email')
   forgotDialog.value.loading = true
   try {
-    const res = await axios.post(`http://localhost:8080/api/users/forgot-password?email=${forgotDialog.value.email}`)
+    const res = await axios.post(`http://116.62.165.182:8080/api/users/forgot-password?email=${forgotDialog.value.email}`)
     if (res.data.success) {
       ElMessage.success(res.data.message)
       forgotDialog.value.step = 2
@@ -281,7 +281,7 @@ const sendCode = async () => {
 const resetPwd = async () => {
   if (!forgotDialog.value.code || !forgotDialog.value.newPassword) return ElMessage.warning('Please fill in completely')
   try {
-    const res = await axios.post(`http://localhost:8080/api/users/reset-password?email=${forgotDialog.value.email}&code=${forgotDialog.value.code}&newPassword=${forgotDialog.value.newPassword}`)
+    const res = await axios.post(`http://116.62.165.182:8080/api/users/reset-password?email=${forgotDialog.value.email}&code=${forgotDialog.value.code}&newPassword=${forgotDialog.value.newPassword}`)
     if (res.data.success) {
       ElMessage.success('Password reset successfully, please login again!')
       forgotDialog.value.visible = false
