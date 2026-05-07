@@ -96,7 +96,7 @@ const loadingUsers = ref(false)
 const fetchApplications = async () => {
   loadingApps.value = true
   try {
-    const res = await axios.get('http://116.62.165.182:8080/api/admin/role-applications')
+    const res = await axios.get('http://116.62.165.182/api/admin/role-applications')
     applicationList.value = res.data.map(item => ({ ...item, createdAt: item.createdAt ? item.createdAt.replace('T', ' ').substring(0, 19) : '' }))
   } catch (e) {} finally { loadingApps.value = false }
 }
@@ -105,7 +105,7 @@ const processApp = (id, status) => {
   const actionName = status === 1 ? 'approve' : 'reject'
   ElMessageBox.confirm(`Are you sure you want to ${actionName} this user's promotion application?`, 'Approval Confirmation', { type: status === 1 ? 'success' : 'warning' }).then(async () => {
     try {
-      const res = await axios.put(`http://116.62.165.182:8080/api/admin/role-applications/${id}?status=${status}`)
+      const res = await axios.put(`http://116.62.165.182/api/admin/role-applications/${id}?status=${status}`)
       if (res.data.success) { ElMessage.success(`Application ${actionName}ed!`); fetchApplications(); fetchUsers(); }
     } catch (e) {}
   }).catch(() => {})
@@ -114,14 +114,14 @@ const processApp = (id, status) => {
 const fetchUsers = async () => {
   loadingUsers.value = true
   try {
-    const res = await axios.get('http://116.62.165.182:8080/api/users')
+    const res = await axios.get('http://116.62.165.182/api/users')
     userList.value = res.data
   } catch (e) {} finally { loadingUsers.value = false }
 }
 
 const handleRoleChange = (userId, username, newRole) => {
   ElMessageBox.confirm(`Are you sure you want to change user [${username}]'s role to ${newRole}?`, 'High-Risk Operation Confirmation', { confirmButtonText: 'Confirm Change', cancelButtonText: 'Cancel', type: 'warning' }).then(async () => {
-    try { await axios.put(`http://116.62.165.182:8080/api/users/${userId}/role?role=${newRole}`); ElMessage.success('Permission updated successfully!'); fetchUsers() } catch (e) { fetchUsers() }
+    try { await axios.put(`http://116.62.165.182/api/users/${userId}/role?role=${newRole}`); ElMessage.success('Permission updated successfully!'); fetchUsers() } catch (e) { fetchUsers() }
   }).catch(() => { fetchUsers() })
 }
 
@@ -131,7 +131,7 @@ const loadingReports = ref(false)
 const fetchReports = async () => {
   loadingReports.value = true
   try {
-    const res = await axios.get('http://116.62.165.182:8080/api/admin/comment-reports')
+    const res = await axios.get('http://116.62.165.182/api/admin/comment-reports')
     reportList.value = res.data.map(item => ({ ...item, createdAt: item.createdAt ? item.createdAt.replace('T', ' ').substring(0, 19) : '' }))
   } catch (e) { ElMessage.error('Failed to get report list') } finally { loadingReports.value = false }
 }
@@ -142,7 +142,7 @@ const processReport = (id, status) => {
     type: status === 1 ? 'danger' : 'info'
   }).then(async () => {
     try {
-      const res = await axios.put(`http://116.62.165.182:8080/api/admin/comment-reports/${id}?status=${status}`)
+      const res = await axios.put(`http://116.62.165.182/api/admin/comment-reports/${id}?status=${status}`)
       if (res.data.success) {
         ElMessage.success('Processing successful! Notification has been sent.')
         fetchReports()

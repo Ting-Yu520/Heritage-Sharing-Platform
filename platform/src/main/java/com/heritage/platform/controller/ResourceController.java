@@ -27,7 +27,7 @@ public class ResourceController {
     @Autowired private UserFavoriteMapper userFavoriteMapper;
 
     // ==========================================================
-    // 🎨 Creator submission center (CONTRIBUTOR / ADMIN)
+    // 🎨 Creator Center (CONTRIBUTOR / ADMIN)
     // ==========================================================
 
     @RoleCheck({"ADMIN", "CONTRIBUTOR"})
@@ -56,7 +56,7 @@ public class ResourceController {
         logAction("CONTRIBUTOR_SUBMIT", resource.getId(), "User " + resource.getContributorUsername() + " " + actionStr);
 
         res.put("success", true);
-        res.put("message", status == -1 ? "Draft saved successfully!" : "Submitted successfully. Please wait for administrator review.");
+        res.put("message", status == -1 ? "Draft saved!" : "Submitted for review, waiting for admin approval.");
         return res;
     }
 
@@ -66,7 +66,7 @@ public class ResourceController {
         Map<String, Object> res = new HashMap<>();
         HeritageResource old = resourceMapper.selectById(id);
         if (old == null) {
-            res.put("success", false); res.put("message", "Resource does not exist!"); return res;
+            res.put("success", false); res.put("message", "Resource not found!"); return res;
         }
 
         old.setTitle(resource.getTitle());
@@ -82,7 +82,7 @@ public class ResourceController {
 
         logAction("CONTRIBUTOR_EDIT", id, "Resource updated and status set to " + status);
         res.put("success", true);
-        res.put("message", status == -1 ? "Draft updated successfully!" : "Resubmitted for review successfully!");
+        res.put("message", status == -1 ? "Draft updated!" : "Resubmitted for review successfully!");
         return res;
     }
 
@@ -96,9 +96,9 @@ public class ResourceController {
             r.setUpdatedAt(LocalDateTime.now());
             resourceMapper.updateById(r);
             logAction("CONTRIBUTOR_WITHDRAW", id, "User withdrew the pending submission");
-            res.put("success", true); res.put("message", "Withdrawn successfully. Your submission has been removed from the review queue.");
+            res.put("success", true); res.put("message", "Withdrawn successfully!");
         } else {
-            res.put("success", false); res.put("message", "Only submissions under review can be withdrawn!");
+            res.put("success", false); res.put("message", "Only pending submissions can be withdrawn!");
         }
         return res;
     }
@@ -110,7 +110,7 @@ public class ResourceController {
         HeritageResource r = resourceMapper.selectById(id);
         if (r == null) {
             res.put("success", false);
-            res.put("message", "Resource does not exist!");
+            res.put("message", "Resource not found!");
             return res;
         }
 
@@ -122,7 +122,7 @@ public class ResourceController {
     }
 
     // ==========================================================
-    // 🏛️ Public hall & interactions (public)
+    // 🏛️ Public Hall, Likes, Favorites (public)
     // ==========================================================
 
     @GetMapping("/api/public/resources")
@@ -185,7 +185,7 @@ public class ResourceController {
     }
 
     // ==========================================================
-    // 🛡️ Admin features (ADMIN only)
+    // 🛡️ Admin only
     // ==========================================================
 
     @RoleCheck("ADMIN")
@@ -201,7 +201,7 @@ public class ResourceController {
         resource.setUpdatedAt(LocalDateTime.now());
         resourceMapper.insert(resource);
         logAction("CREATE", resource.getId(), "Created new resource: " + resource.getTitle());
-        return "Created successfully. Please wait for review.";
+        return "New resource added, waiting for review.";
     }
 
     @RoleCheck("ADMIN")
@@ -211,7 +211,8 @@ public class ResourceController {
         return "Deleted successfully!";
     }
 
-    @RoleCheck("ADMIN")
+    // ✨ Modified: Allow ADMIN and CONTRIBUTOR to view dashboard stats
+    @RoleCheck({"ADMIN", "CONTRIBUTOR"})
     @GetMapping("/api/stats/summary")
     public Map<String, Integer> getSummary() {
         Map<String, Integer> summary = new HashMap<>();
@@ -244,12 +245,8 @@ public class ResourceController {
 
         Notification note = new Notification();
         note.setReceiverUsername(resource.getContributorUsername());
-        String resultText = (status == 1)
-                ? "[APPROVED] Your resource has been published."
-                : (status == 2
-                    ? "[REJECTED] Reason: " + feedback + ". Please revise and resubmit."
-                    : "[ARCHIVED] The resource has been taken offline.");
-        note.setContent("Review result for \"" + resource.getTitle() + "\": " + resultText);
+        String resultText = (status == 1) ? "Approved! Your resource is now published." : (status == 2 ? "Rejected. Reason: " + feedback + ". Please revise and resubmit." : "Archived. The resource has been taken down.");
+        note.setContent("Audit result for " + resource.getTitle() + ": " + resultText);
         note.setCreatedAt(LocalDateTime.now());
         notificationMapper.insert(note);
 
@@ -259,7 +256,7 @@ public class ResourceController {
 
     private void logAction(String type, Long resId, String summary) {
         AuditLog log = new AuditLog();
-        log.setUserId(UserContext.getCurrentUser());  // Dynamically get current user
+        log.setUserId(UserContext.getCurrentUser());
         log.setActionType(type);
         log.setResourceId(resId);
         log.setChangesSummary(summary);

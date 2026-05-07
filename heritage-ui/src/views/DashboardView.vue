@@ -5,7 +5,6 @@
       <p>Welcome back, {{ displayRole }}: {{ currentName }} • Overview of the platform</p>
     </div>
 
-    <!-- Stat cards (styles only, structure unchanged) -->
     <el-row :gutter="24">
       <el-col :span="6">
         <el-card shadow="hover" class="stat-card">
@@ -50,19 +49,17 @@ const stats = ref({
   logs: 0
 })
 
-// Keep the original data loading logic unchanged
 const fetchStats = async () => {
   try {
-    const res = await axios.get('http://116.62.165.182:8080/api/resources')
-    const allData = res.data
-    stats.value.total = allData.length
-    stats.value.pending = allData.filter(i => i.status === 0).length
-    stats.value.published = allData.filter(i => i.status === 1).length
-
-    const logRes = await axios.get('http://116.62.165.182:8080/api/audit-logs')
-    stats.value.logs = logRes.data.length
+    const res = await axios.get('http://116.62.165.182/api/stats/summary')
+    // The backend returns { total, pending, published, logs }
+    stats.value.total = res.data.total || 0
+    stats.value.pending = res.data.pending || 0
+    stats.value.published = res.data.published || 0
+    stats.value.logs = res.data.logs || 0
   } catch (e) {
-    console.error("Failed to load statistical data")
+    console.error("Failed to load dashboard statistics", e)
+    // Keep all zeros on error
   }
 }
 

@@ -95,7 +95,7 @@ const openDetail = async (item) => {
 // Fetch comments from backend
 const fetchComments = async (resourceId) => {
   try {
-    const response = await axios.get(`http://116.62.165.182:8080/api/public/resources/${resourceId}/comments`)
+    const response = await axios.get(`http://116.62.165.182/api/public/resources/${resourceId}/comments`)
     comments.value = response.data
   } catch (error) {
     console.error('Failed to get comments')
@@ -113,7 +113,7 @@ const submitComment = async () => {
     // Try to get current logged-in username, null if not logged in
     const currentUser = localStorage.getItem('currentUser')
 
-    await axios.post('http://116.62.165.182:8080/api/public/comments', {
+    await axios.post('http://116.62.165.182/api/public/comments', {
       resourceId: currentResource.value.id,
       username: currentUser, // Backend will automatically become "Anonymous Cultural Enthusiast" if null
       content: newCommentText.value
@@ -130,7 +130,7 @@ const submitComment = async () => {
 // Request data from Java's new public interface
 const fetchPublicData = async () => {
   try {
-    const response = await axios.get('http://116.62.165.182:8080/api/public/resources')
+    const response = await axios.get('http://116.62.165.182/api/public/resources')
     publicResources.value = response.data
   } catch (error) {
     console.error('Failed to get public resources')

@@ -59,7 +59,7 @@ const searchAction = ref('')
 // Get all logs (sorted by time in reverse order, newest first)
 const fetchLogs = async () => {
   try {
-    const response = await axios.get('http://116.62.165.182:8080/api/audit-logs')
+    const response = await axios.get('http://116.62.165.182/api/audit-logs')
     allLogs.value = response.data.reverse()
   } catch (error) {
     ElMessage.error('Failed to get audit logs')

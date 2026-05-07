@@ -231,7 +231,7 @@ const reportDialog = ref({ visible: false, commentId: 0, reason: '', details: ''
 // Load resource detail
 const loadDetail = async () => {
   try {
-    const res = await axios.get(`http://116.62.165.182:8080/api/public/resources/${route.params.id}${currentUser ? '?username=' + currentUser : ''}`)
+    const res = await axios.get(`http://116.62.165.182/api/public/resources/${route.params.id}${currentUser ? '?username=' + currentUser : ''}`)
     if (!res.data.success) {
       ElMessage.error(res.data.message)
       setTimeout(() => router.push('/'), 2000)
@@ -254,7 +254,7 @@ const loadDetail = async () => {
 const toggleAction = async (type) => {
   if (!currentUser) return router.push(`/login?redirect=${encodeURIComponent(route.fullPath)}`)
   try {
-    const res = await axios.post(`http://116.62.165.182:8080/api/resources/${route.params.id}/${type}?username=${currentUser}`)
+    const res = await axios.post(`http://116.62.165.182/api/resources/${route.params.id}/${type}?username=${currentUser}`)
     if (type === 'like') { isLiked.value = res.data === 'liked'; likeCount.value += (isLiked.value ? 1 : -1) }
     else { isFavorited.value = res.data === 'favorited'; favCount.value += (isFavorited.value ? 1 : -1) }
   } catch (error) { ElMessage.error('Operation failed') }
@@ -275,7 +275,7 @@ const checkLogin = () => {
 // Fetch comments (with current user state)
 const fetchComments = async () => {
   try {
-    const url = `http://116.62.165.182:8080/api/public/resources/${route.params.id}/comments` +
+    const url = `http://116.62.165.182/api/public/resources/${route.params.id}/comments` +
       (currentUser ? `?username=${currentUser}` : '')
     const res = await axios.get(url)
     comments.value = res.data
@@ -289,7 +289,7 @@ const submitComment = async (parentId, replyTo) => {
   if (!content.trim()) return ElMessage.warning('Content cannot be empty')
 
   try {
-    const res = await axios.post('http://116.62.165.182:8080/api/comments', {
+    const res = await axios.post('http://116.62.165.182/api/comments', {
       resourceId: route.params.id, username: currentUser, content: content, parentId: parentId, replyTo: replyTo
     })
     if (res.data.success) {
@@ -306,7 +306,7 @@ const submitComment = async (parentId, replyTo) => {
 const handleCommentAction = async (id, type) => {
   if (!checkLogin()) return
   try {
-    const res = await axios.post(`http://116.62.165.182:8080/api/comments/${id}/action?type=${type}&username=${currentUser}`)
+    const res = await axios.post(`http://116.62.165.182/api/comments/${id}/action?type=${type}&username=${currentUser}`)
     if (res.data.success) {
       fetchComments()  // Refresh to update state and counts
     }
@@ -317,7 +317,7 @@ const handleCommentAction = async (id, type) => {
 const deleteComment = (id) => {
   ElMessageBox.confirm('Are you sure you want to delete this comment?', 'Prompt', { type: 'warning' }).then(async () => {
     try {
-      await axios.delete(`http://116.62.165.182:8080/api/comments/${id}`)
+      await axios.delete(`http://116.62.165.182/api/comments/${id}`)
       ElMessage.success('Deleted')
       fetchComments()
     } catch (e) { ElMessage.error('Deletion failed') }
@@ -331,7 +331,7 @@ const openReport = (id) => { if (checkLogin()) reportDialog.value = { visible: t
 // Submit edit
 const submitEdit = async () => {
   try {
-    const res = await axios.put(`http://116.62.165.182:8080/api/comments/${editDialog.value.id}`, { content: editDialog.value.content })
+    const res = await axios.put(`http://116.62.165.182/api/comments/${editDialog.value.id}`, { content: editDialog.value.content })
     if (res.data.success) {
       ElMessage.success(res.data.message)
       editDialog.value.visible = false
@@ -344,7 +344,7 @@ const submitEdit = async () => {
 const submitReport = async () => {
   if (!reportDialog.value.reason) return ElMessage.warning('Please select report reason')
   try {
-    const res = await axios.post('http://116.62.165.182:8080/api/comments/report', {
+    const res = await axios.post('http://116.62.165.182/api/comments/report', {
       commentId: reportDialog.value.commentId, reporterUsername: currentUser,
       reason: reportDialog.value.reason, details: reportDialog.value.details
     })

@@ -148,7 +148,7 @@ const fetchProfile = async () => {
   if (!currentUsername) return
   loading.value = true
   try {
-    const res = await axios.get(`http://116.62.165.182:8080/api/users/profile?username=${currentUsername}`)
+    const res = await axios.get(`http://116.62.165.182/api/users/profile?username=${currentUsername}`)
     if (res.data) profileForm.value = Object.assign({}, profileForm.value, res.data)
   } catch (error) {
     ElMessage.error('Failed to get personal profile')
@@ -160,7 +160,7 @@ const fetchProfile = async () => {
 const saveProfile = async () => {
   saving.value = true
   try {
-    const res = await axios.put('http://116.62.165.182:8080/api/users/profile', profileForm.value)
+    const res = await axios.put('http://116.62.165.182/api/users/profile', profileForm.value)
     if (res.data.success) {
       ElMessage.success(res.data.message)
       setTimeout(() => { window.location.reload() }, 1000)
@@ -171,7 +171,7 @@ const saveProfile = async () => {
 
 const savePreferences = async () => {
   try {
-    const res = await axios.put(`http://116.62.165.182:8080/api/users/preferences?username=${currentUsername}`, profileForm.value)
+    const res = await axios.put(`http://116.62.165.182/api/users/preferences?username=${currentUsername}`, profileForm.value)
     if (res.data.success) ElMessage.success(res.data.message)
   } catch (error) { ElMessage.error('Failed to save preferences') }
 }
@@ -185,7 +185,7 @@ const submitApplication = async () => {
   if (!applyReason.value.trim()) return ElMessage.warning('Please fill in the application reason!')
   applying.value = true
   try {
-    const res = await axios.post('http://116.62.165.182:8080/api/users/apply-role', { username: currentUsername, reason: applyReason.value })
+    const res = await axios.post('http://116.62.165.182/api/users/apply-role', { username: currentUsername, reason: applyReason.value })
     if (res.data.success) {
       ElMessage.success(res.data.message)
       applyDialogVisible.value = false
@@ -205,7 +205,7 @@ const fetchFavorites = async () => {
   if (!currentUsername) return
   favLoading.value = true
   try {
-    const res = await axios.get(`http://116.62.165.182:8080/api/resources/favorites?username=${currentUsername}&current=${favPage.value}&size=6`)
+    const res = await axios.get(`http://116.62.165.182/api/resources/favorites?username=${currentUsername}&current=${favPage.value}&size=6`)
     favList.value = res.data.records
     favTotal.value = res.data.total
   } catch (error) { ElMessage.error('Failed to get favorites list') }

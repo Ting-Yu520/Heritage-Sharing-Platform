@@ -42,7 +42,6 @@
                 <el-button v-if="scope.row.status === 0" size="small" type="warning" plain @click="withdraw(scope.row.id)">Withdraw</el-button>
                 <el-button v-if="[-1, 2, 4].includes(scope.row.status)" size="small" type="primary" @click="editResource(scope.row)">Continue Editing</el-button>
                 <el-button v-if="scope.row.status === 1" size="small" type="success" plain @click="router.push(`/resource/${scope.row.id}`)">View Details</el-button>
-                <!-- ✨ New: delete button -->
                 <el-button size="small" type="danger" plain @click="handleDelete(scope.row)">Delete</el-button>
               </template>
             </el-table-column>
@@ -71,10 +70,10 @@
                   <el-form-item label="Category" prop="category">
                     <el-select v-model="form.category" placeholder="Please select resource category" style="width: 100%;">
                       <el-option label="Intangible Cultural Heritage" value="Intangible Cultural Heritage" />
-                      <el-option label="Historical Sites / Architecture" value="Historical Sites / Architecture" />
+                      <el-option label="Historical Sites/Buildings" value="Historical Sites/Buildings" />
                       <el-option label="Folk Activities" value="Folk Activities" />
-                      <el-option label="Traditional Crafts / Handicrafts" value="Traditional Crafts / Handicrafts" />
-                      <el-option label="Oral Traditions / Myths" value="Oral Traditions / Myths" />
+                      <el-option label="Traditional Crafts/Handicrafts" value="Traditional Crafts/Handicrafts" />
+                      <el-option label="Oral Traditions/Myths" value="Oral Traditions/Myths" />
                     </el-select>
                   </el-form-item>
                 </el-col>
@@ -128,13 +127,13 @@ const router = useRouter()
 const currentUsername = localStorage.getItem('currentUser')
 const activeTab = ref('list')
 
-// List Status
+// List state
 const resourceList = ref([])
 const loading = ref(false)
 const currentPage = ref(1)
 const total = ref(0)
 
-// Form Status
+// Form state
 const resourceFormRef = ref(null)
 const submitting = ref(false)
 const isEditing = ref(false)
@@ -151,11 +150,12 @@ const rules = {
   description: [{ required: true, message: 'Must fill in detailed description', trigger: 'blur' }]
 }
 
+// Fetch my resources
 const fetchMyResources = async () => {
   if (!currentUsername) return
   loading.value = true
   try {
-    const res = await axios.get(`http://116.62.165.182:8080/api/my-resources?username=${currentUsername}&current=${currentPage.value}&size=10`)
+    const res = await axios.get(`http://116.62.165.182/api/my-resources?username=${currentUsername}&current=${currentPage.value}&size=10`)
     resourceList.value = res.data.records.map(item => ({
       ...item,
       updatedAt: item.updatedAt ? item.updatedAt.substring(0, 16).replace('T', ' ') : ''
@@ -168,10 +168,11 @@ const fetchMyResources = async () => {
   }
 }
 
+// Submit or save draft
 const submit = (status) => {
   resourceFormRef.value.validate(async (valid) => {
     if (!valid && status === 0) {
-      ElMessage.warning('Please complete all required fields with red stars before submitting for review!')
+      ElMessage.warning('Please complete all required fields before submitting for review!')
       return
     }
 
@@ -181,9 +182,9 @@ const submit = (status) => {
     try {
       let res
       if (isEditing.value) {
-        res = await axios.put(`http://116.62.165.182:8080/api/my-resources/${editId.value}?status=${status}`, form.value)
+        res = await axios.put(`http://116.62.165.182/api/my-resources/${editId.value}?status=${status}`, form.value)
       } else {
-        res = await axios.post(`http://116.62.165.182:8080/api/my-resources/submit?status=${status}`, form.value)
+        res = await axios.post(`http://116.62.165.182/api/my-resources/submit?status=${status}`, form.value)
       }
 
       if (res.data.success) {
@@ -202,12 +203,13 @@ const submit = (status) => {
   })
 }
 
+// Withdraw a submission
 const withdraw = (id) => {
   ElMessageBox.confirm('Are you sure you want to withdraw this submission?', 'Withdrawal Confirmation', {
     confirmButtonText: 'Confirm', cancelButtonText: 'Cancel', type: 'warning'
   }).then(async () => {
     try {
-      const res = await axios.put(`http://116.62.165.182:8080/api/my-resources/${id}/withdraw`)
+      const res = await axios.put(`http://116.62.165.182/api/my-resources/${id}/withdraw`)
       if (res.data.success) {
         ElMessage.success(res.data.message)
         fetchMyResources()
@@ -218,9 +220,7 @@ const withdraw = (id) => {
   }).catch(() => {})
 }
 
-/**
- * ✨ New: delete submission
- */
+// Delete a resource
 const handleDelete = (row) => {
   ElMessageBox.confirm(
     `Are you sure you want to permanently delete the submission "${row.title || 'Untitled Draft'}"? This action cannot be undone!`,
@@ -232,7 +232,7 @@ const handleDelete = (row) => {
     }
   ).then(async () => {
     try {
-      const res = await axios.delete(`http://116.62.165.182:8080/api/my-resources/${row.id}`)
+      const res = await axios.delete(`http://116.62.165.182/api/my-resources/${row.id}`)
       if (res.data.success) {
         ElMessage.success(res.data.message)
         fetchMyResources()
@@ -245,6 +245,7 @@ const handleDelete = (row) => {
   }).catch(() => {})
 }
 
+// Edit a resource
 const editResource = (row) => {
   isEditing.value = true
   editId.value = row.id
@@ -252,6 +253,7 @@ const editResource = (row) => {
   activeTab.value = 'publish'
 }
 
+// Reset form to default
 const resetForm = () => {
   if (resourceFormRef.value) resourceFormRef.value.resetFields()
   form.value = { title: '', category: '', thumbnail: '', mediaUrl: '', tags: '', location: '', description: '', contributorUsername: currentUsername }
@@ -259,6 +261,7 @@ const resetForm = () => {
   editId.value = null
 }
 
+// Handle tab switch
 const handleTabClick = (tab) => {
   if (tab.paneName === 'list') fetchMyResources()
 }

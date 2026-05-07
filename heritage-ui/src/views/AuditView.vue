@@ -141,7 +141,7 @@ const filters = ref({
 const fetchPending = async () => {
   loading.value = true
   try {
-    let url = `http://116.62.165.182:8080/api/resources/pending?current=${currentPage.value}&size=20`
+    let url = `http://116.62.165.182/api/resources/pending?current=${currentPage.value}&size=20`
     if (filters.value.category) url += `&category=${filters.value.category}`
     if (filters.value.dateRange && filters.value.dateRange.length === 2) {
       url += `&startDate=${filters.value.dateRange[0]}&endDate=${filters.value.dateRange[1]}`
@@ -170,7 +170,7 @@ const approve = (id) => {
   ElMessageBox.confirm('Are you sure you want to approve this resource for publication?', 'Confirm Approval', {
     confirmButtonText: 'Approve', cancelButtonText: 'Cancel', type: 'success'
   }).then(async () => {
-    await axios.put(`http://116.62.165.182:8080/api/resources/${id}/status?status=1`)
+    await axios.put(`http://116.62.165.182/api/resources/${id}/status?status=1`)
     ElMessage.success('Resource has been successfully published, and the contributor has been notified!')
     fetchPending()
   }).catch(() => {
@@ -197,7 +197,7 @@ const submitReject = async () => {
   }
 
   try {
-    const res = await axios.put(`http://116.62.165.182:8080/api/resources/${rejectDialog.value.id}/status?status=2&feedback=${encodeURIComponent(feedbackText)}`)
+    const res = await axios.put(`http://116.62.165.182/api/resources/${rejectDialog.value.id}/status?status=2&feedback=${encodeURIComponent(feedbackText)}`)
     if (res.data.includes('ERROR')) {
       ElMessage.error(res.data)
       return
@@ -219,13 +219,13 @@ const submitReject = async () => {
 const manageList = ref([])
 
 const fetchManageList = async () => {
-  const res = await axios.get('http://116.62.165.182:8080/api/resources')
+  const res = await axios.get('http://116.62.165.182/api/resources')
   manageList.value = res.data.filter(r => r.status === 1 || r.status === 3)
 }
 
 const toggleStatus = (id, targetStatus, actionName) => {
   ElMessageBox.confirm(`Are you sure you want to ${actionName} this resource?`, 'Warning', { type: 'warning' }).then(async () => {
-    await axios.put(`http://116.62.165.182:8080/api/resources/${id}/status?status=${targetStatus}`)
+    await axios.put(`http://116.62.165.182/api/resources/${id}/status?status=${targetStatus}`)
     ElMessage.success(`${actionName} successful!`)
     fetchManageList()
   })
@@ -245,7 +245,7 @@ const handleDelete = (id, title) => {
     }
   ).then(async () => {
     try {
-      await axios.delete(`http://116.62.165.182:8080/api/resources/${id}`)
+      await axios.delete(`http://116.62.165.182/api/resources/${id}`)
       ElMessage.success('Resource deleted successfully!')
       fetchManageList()
     } catch (error) {

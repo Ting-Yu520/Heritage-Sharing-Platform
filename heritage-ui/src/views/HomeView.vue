@@ -89,7 +89,7 @@ const totalResources = ref(0)
 // Fetch category counts from the server
 const fetchCategoryCounts = async () => {
   try {
-    const res = await axios.get('http://116.62.165.182:8080/api/public/categories/count')
+    const res = await axios.get('http://116.62.165.182/api/public/categories/count')
     categoryCounts.value = res.data || {}
   } catch (e) {}
 }
@@ -99,7 +99,7 @@ const fetchResources = async () => {
   loading.value = true
   errorMsg.value = ''
   try {
-    let url = `http://116.62.165.182:8080/api/public/resources?current=${currentPage.value}&size=12`
+    let url = `http://116.62.165.182/api/public/resources?current=${currentPage.value}&size=12`
     if (searchKeyword.value) url += `&keyword=${encodeURIComponent(searchKeyword.value)}`
     if (activeCategory.value) url += `&category=${encodeURIComponent(activeCategory.value)}`
     const res = await axios.get(url)

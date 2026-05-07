@@ -11,7 +11,6 @@ import AuditLogView from '../views/AuditLogView.vue'
 import UsersView from '../views/UsersView.vue'
 import ProfileView from '../views/ProfileView.vue'
 
-
 const routes = [
   { path: '/', name: 'home', component: HomeView },
   { path: '/gallery', name: 'gallery', component: GalleryView },
@@ -33,7 +32,7 @@ const routes = [
     path: '/resources',
     name: 'resources',
     component: ResourceView,
-    meta: { roles: ['ADMIN', 'CONTRIBUTOR'] }
+    meta: { roles: ['ADMIN'] }          // only admin can access resource management
   },
   {
     path: '/audit',
@@ -58,7 +57,7 @@ const routes = [
     name: 'profile',
     component: ProfileView,
     meta: { roles: ['ADMIN', 'CONTRIBUTOR', 'VIEWER'] }
-  },
+  }
 ]
 
 const router = createRouter({
@@ -66,7 +65,7 @@ const router = createRouter({
   routes
 })
 
-// Global navigation guard
+// Global navigation guard: check if user has the required role
 router.beforeEach((to, from, next) => {
   const userRole = localStorage.getItem('userRole') || ''
   const requiredRoles = to.meta.roles

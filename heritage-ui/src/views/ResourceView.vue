@@ -116,7 +116,7 @@ let searchTimeout = null
 const fetchCategories = async () => {
   loading.value = true
   try {
-    const res = await axios.get('http://116.62.165.182:8080/api/admin/categories', {
+    const res = await axios.get('http://116.62.165.182/api/admin/categories', {
       params: { keyword: searchKeyword.value, filterStatus: filterStatus.value }
     })
     categoryList.value = res.data
@@ -162,7 +162,7 @@ const submitForm = () => {
     if (!valid) return
     saving.value = true
     try {
-      const res = await axios.post('http://116.62.165.182:8080/api/admin/categories', form.value)
+      const res = await axios.post('http://116.62.165.182/api/admin/categories', form.value)
       if (res.data.success) {
         ElMessage.success(res.data.message)
         formDialogVisible.value = false
@@ -203,7 +203,7 @@ const executeDelete = async () => {
   if (!targetCategory.value) return
   deleting.value = true
   try {
-    const res = await axios.delete(`http://116.62.165.182:8080/api/admin/categories/${targetCategory.value.id}`)
+    const res = await axios.delete(`http://116.62.165.182/api/admin/categories/${targetCategory.value.id}`)
     if (res.data.success) {
       ElMessage.success(res.data.message)
       deleteDialogVisible.value = false
