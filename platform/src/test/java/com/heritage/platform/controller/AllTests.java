@@ -1,3 +1,4 @@
+// AllTests.java
 package com.heritage.platform.controller;
 
 import org.junit.runner.RunWith;
@@ -14,5 +15,4 @@ import org.junit.runners.Suite;
         UserControllerTest.class
 })
 public class AllTests {
-
 }

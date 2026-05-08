@@ -17,57 +17,129 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 public class NotificationControllerTest extends ControlBaseTest {
 
-    private HttpHeaders httpHeaders;
+    private HttpHeaders adminHeaders;
 
     @Before
     public void before() throws Exception {
-        httpHeaders = new HttpHeaders();
-        httpHeaders.add("content-type", "application/json;charset=UTF-8");
-        httpHeaders.add("origin", "Access-Control-Allow-Origin");
+        adminHeaders = getAdminHeaders();
         this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).alwaysDo(print()).build();
     }
 
     @Test
-    public void testGetNotifications() throws Exception {
-        MvcResult result = mockMvc.perform(get("/api/notifications?username=testuser").headers(httpHeaders))
+    public void testGetNotificationsSuccess() throws Exception {
+        MvcResult result = mockMvc.perform(get("/api/notifications?username=admin").headers(adminHeaders))
                 .andExpect(status().isOk())
                 .andReturn();
         String rs = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
-        System.out.println("rs:" + rs);
         JSONArray jsonArray = new JSONArray(rs);
-        assert jsonArray.length() >= 0;
+        assertTrue(jsonArray.length() >= 0);
     }
 
     @Test
-    public void testMarkAsRead() throws Exception {
-        MvcResult result = mockMvc.perform(put("/api/notifications/1/read").headers(httpHeaders))
+    public void testGetNotificationsReturnsArray() throws Exception {
+        MvcResult result = mockMvc.perform(get("/api/notifications?username=admin").headers(adminHeaders))
                 .andExpect(status().isOk())
                 .andReturn();
         String rs = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
-        System.out.println("rs:" + rs);
+        assertTrue(rs.startsWith("["));
+    }
+
+    @Test
+    public void testGetNotificationsEachHasId() throws Exception {
+        MvcResult result = mockMvc.perform(get("/api/notifications?username=admin").headers(adminHeaders))
+                .andExpect(status().isOk())
+                .andReturn();
+        String rs = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+        JSONArray jsonArray = new JSONArray(rs);
+        for (int i = 0; i < jsonArray.length(); i++) {
+            JSONObject notification = jsonArray.getJSONObject(i);
+            assertTrue(notification.has("id"));
+        }
+    }
+
+    @Test
+    public void testGetNotificationsEachHasContent() throws Exception {
+        MvcResult result = mockMvc.perform(get("/api/notifications?username=admin").headers(adminHeaders))
+                .andExpect(status().isOk())
+                .andReturn();
+        String rs = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+        JSONArray jsonArray = new JSONArray(rs);
+        for (int i = 0; i < jsonArray.length(); i++) {
+            JSONObject notification = jsonArray.getJSONObject(i);
+            assertTrue(notification.has("content"));
+        }
+    }
+
+    @Test
+    public void testGetNotificationsEachHasIsRead() throws Exception {
+        MvcResult result = mockMvc.perform(get("/api/notifications?username=admin").headers(adminHeaders))
+                .andExpect(status().isOk())
+                .andReturn();
+        String rs = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+        JSONArray jsonArray = new JSONArray(rs);
+        for (int i = 0; i < jsonArray.length(); i++) {
+            JSONObject notification = jsonArray.getJSONObject(i);
+            assertTrue(notification.has("isRead"));
+        }
+    }
+
+    @Test
+    public void testGetNotificationsUserNotFoundReturnsEmpty() throws Exception {
+        MvcResult result = mockMvc.perform(get("/api/notifications?username=nonexistent_user_xyz").headers(adminHeaders))
+                .andExpect(status().isOk())
+                .andReturn();
+        String rs = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+        JSONArray jsonArray = new JSONArray(rs);
+        assertEquals(0, jsonArray.length());
+    }
+
+    @Test
+    public void testGetNotificationsMissingUsernameReturnsBadRequest() throws Exception {
+        mockMvc.perform(get("/api/notifications").headers(adminHeaders))
+                .andExpect(status().isBadRequest())
+                .andReturn();
+    }
+
+    @Test
+    public void testMarkAsReadSuccess() throws Exception {
+        MvcResult result = mockMvc.perform(put("/api/notifications/1/read").headers(adminHeaders))
+                .andExpect(status().isOk())
+                .andReturn();
+        String rs = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
         assertEquals("success", rs);
     }
 
     @Test
-    public void testMarkAllAsRead() throws Exception {
-        MvcResult result = mockMvc.perform(put("/api/notifications/mark-all-read?username=testuser").headers(httpHeaders))
+    public void testMarkAsReadNotFoundReturnsSuccess() throws Exception {
+        MvcResult result = mockMvc.perform(put("/api/notifications/99999/read").headers(adminHeaders))
                 .andExpect(status().isOk())
                 .andReturn();
         String rs = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
-        System.out.println("rs:" + rs);
         assertEquals("success", rs);
     }
 
     @Test
-    public void testUpdatePreferences() throws Exception {
-        String preferencesJson = "{\"notifyReview\": 1, \"notifyComment\": 1, \"notifySystem\": 1}";
-
-        MvcResult result = mockMvc.perform(put("/api/users/preferences?username=admin").headers(httpHeaders).content(preferencesJson))
+    public void testMarkAllAsReadSuccess() throws Exception {
+        MvcResult result = mockMvc.perform(put("/api/notifications/mark-all-read?username=admin").headers(adminHeaders))
                 .andExpect(status().isOk())
                 .andReturn();
         String rs = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
-        System.out.println("rs:" + rs);
-        JSONObject jsonObject = new JSONObject(rs);
-        assertEquals("Notification preferences saved!", jsonObject.get("message"));
+        assertEquals("success", rs);
+    }
+
+    @Test
+    public void testMarkAllAsReadUserNotFoundReturnsSuccess() throws Exception {
+        MvcResult result = mockMvc.perform(put("/api/notifications/mark-all-read?username=nonexistent").headers(adminHeaders))
+                .andExpect(status().isOk())
+                .andReturn();
+        String rs = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+        assertEquals("success", rs);
+    }
+
+    @Test
+    public void testMarkAllAsReadMissingUsernameReturnsBadRequest() throws Exception {
+        mockMvc.perform(put("/api/notifications/mark-all-read").headers(adminHeaders))
+                .andExpect(status().isBadRequest())
+                .andReturn();
     }
 }

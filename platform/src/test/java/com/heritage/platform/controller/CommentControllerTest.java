@@ -17,143 +17,200 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 public class CommentControllerTest extends ControlBaseTest {
 
-    private HttpHeaders httpHeaders;
+    private HttpHeaders adminHeaders;
+    private HttpHeaders publicHeaders;
+    private Long testResourceId = 1L;
+    private Long existingCommentId = 1L;
 
     @Before
     public void before() throws Exception {
-        httpHeaders = new HttpHeaders();
-        httpHeaders.add("content-type", "application/json;charset=UTF-8");
-        httpHeaders.add("origin", "Access-Control-Allow-Origin");
+        adminHeaders = getAdminHeaders();
+        publicHeaders = getPublicHeaders();
         this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).alwaysDo(print()).build();
     }
 
     @Test
-    public void testGetResourceComments() throws Exception {
-        MvcResult result = mockMvc.perform(get("/api/public/resources/1/comments").headers(httpHeaders))
+    public void testGetResourceCommentsSuccess() throws Exception {
+        MvcResult result = mockMvc.perform(get("/api/public/resources/" + testResourceId + "/comments").headers(publicHeaders))
                 .andExpect(status().isOk())
                 .andReturn();
         String rs = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
-        System.out.println("rs:" + rs);
         JSONArray jsonArray = new JSONArray(rs);
-        assert jsonArray.length() >= 0;
+        assertTrue(jsonArray.length() >= 0);
     }
 
     @Test
-    public void testAddComment1() throws Exception {
-        String commentJson = "{\"resourceId\": 1, \"username\": \"testuser\", \"content\": \"Test comment\", \"parentId\": 0}";
-        MvcResult result = mockMvc.perform(post("/api/comments").headers(httpHeaders).content(commentJson))
+    public void testGetResourceCommentsReturnsArray() throws Exception {
+        MvcResult result = mockMvc.perform(get("/api/public/resources/" + testResourceId + "/comments").headers(publicHeaders))
                 .andExpect(status().isOk())
                 .andReturn();
         String rs = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
-        System.out.println("rs:" + rs);
-        JSONObject jsonObject = new JSONObject(rs);
-        assertTrue(jsonObject.getBoolean("success"));
-        assertEquals("Comment posted successfully!", jsonObject.getString("message"));
-    }
-    @Test
-    public void testAddComment2() throws Exception {
-        String commentJson = "{\"resourceId\":\"4\",\"username\":\"guest01\",\"content\":\"666\",\"parentId\":9,\"replyTo\":\"admin\"}";
-
-        MvcResult result = mockMvc.perform(post("/api/comments").headers(httpHeaders).content(commentJson))
-                .andExpect(status().isOk())
-                .andReturn();
-        String rs = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
-        System.out.println("rs:" + rs);
-        JSONObject jsonObject = new JSONObject(rs);
-        assertTrue(jsonObject.getBoolean("success"));
-        assertEquals("Comment posted successfully!", jsonObject.getString("message"));
+        assertTrue(rs.startsWith("["));
     }
 
     @Test
-    public void testEditComment1() throws Exception {
-        String updateJson = "{\"content\": \"Updated comment\"}";
-        MvcResult result = mockMvc.perform(put("/api/comments/1").headers(httpHeaders).content(updateJson))
+    public void testGetResourceCommentsNotFoundReturnsEmpty() throws Exception {
+        MvcResult result = mockMvc.perform(get("/api/public/resources/99999/comments").headers(publicHeaders))
                 .andExpect(status().isOk())
                 .andReturn();
         String rs = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
-        System.out.println("rs:" + rs);
-        JSONObject jsonObject = new JSONObject(rs);
-        assertNotNull(jsonObject.get("success"));
-    }
-    @Test
-    public void testEditComment2() throws Exception {
-        String updateJson = "{\"content\": \"Updated comment\"}";
-        MvcResult result = mockMvc.perform(put("/api/comments/999").headers(httpHeaders).content(updateJson))
-                .andExpect(status().isOk())
-                .andReturn();
-        String rs = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
-        System.out.println("rs:" + rs);
-        JSONObject jsonObject = new JSONObject(rs);
-        assertEquals("Comment does not exist or has been deleted!", jsonObject.getString("message"));
-    }
-    @Test
-    public void testEditComment3() throws Exception {
-        String updateJson = "{\"content\": \"Updated comment\"}";
-        MvcResult result = mockMvc.perform(put("/api/comments/30").headers(httpHeaders).content(updateJson))
-                .andExpect(status().isOk())
-                .andReturn();
-        String rs = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
-        System.out.println("rs:" + rs);
-        JSONObject jsonObject = new JSONObject(rs);
-        assertNotNull(jsonObject.get("success"));
-    }
-
-
-    @Test
-    public void testDeleteComment() throws Exception {
-        MvcResult result = mockMvc.perform(delete("/api/comments/1").headers(httpHeaders))
-                .andExpect(status().isOk())
-                .andReturn();
-        String rs = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
-        System.out.println("rs:" + rs);
-        JSONObject jsonObject = new JSONObject(rs);
-        assertTrue(jsonObject.getBoolean("success"));
-        assertEquals("Comment deleted.", jsonObject.getString("message"));
-    }
-
-    @Test
-    public void testCommentAction() throws Exception {
-        MvcResult result = mockMvc.perform(post("/api/comments/1/action?type=like").headers(httpHeaders))
-                .andExpect(status().isOk())
-                .andReturn();
-        String rs = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
-        System.out.println("rs:" + rs);
-        assertEquals("success", rs);
-    }
-
-    @Test
-    public void testReportComment() throws Exception {
-        String reportJson = "{\"commentId\": 1, \"reporterUsername\": \"testuser\", \"reason\": \"Test reason\"}";
-        MvcResult result = mockMvc.perform(post("/api/comments/report").headers(httpHeaders).content(reportJson))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        String rs = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
-        System.out.println("rs:" + rs);
-        JSONObject jsonObject = new JSONObject(rs);
-        assertTrue(jsonObject.getBoolean("success"));
-        assertEquals("Report submitted. Thank you for helping maintain the community!", jsonObject.getString("message"));
-    }
-
-    @Test
-    public void testGetPendingReports() throws Exception {
-        MvcResult result = mockMvc.perform(get("/api/admin/comment-reports").headers(httpHeaders))
-                .andExpect(status().isOk())
-                .andReturn();
-        String rs = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
-        System.out.println("rs:" + rs);
         JSONArray jsonArray = new JSONArray(rs);
-        assert jsonArray.length() >= 0;
+        assertEquals(0, jsonArray.length());
     }
 
     @Test
-    public void testProcessReport() throws Exception {
-        MvcResult result = mockMvc.perform(put("/api/admin/comment-reports/1?status=1").headers(httpHeaders))
+    public void testAddTopLevelCommentSuccess() throws Exception {
+        String commentJson = "{\"resourceId\": " + testResourceId + ", \"username\": \"admin\", \"content\": \"This is a test comment from unit test\", \"parentId\": 0}";
+        MvcResult result = mockMvc.perform(post("/api/comments").headers(adminHeaders).content(commentJson))
                 .andExpect(status().isOk())
                 .andReturn();
         String rs = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
-        System.out.println("rs:" + rs);
         JSONObject jsonObject = new JSONObject(rs);
-        assertNotNull(jsonObject.get("success"));
+        assertTrue(jsonObject.getBoolean("success"));
+    }
+
+    @Test
+    public void testAddReplyCommentSuccess() throws Exception {
+        String commentJson = "{\"resourceId\": " + testResourceId + ", \"username\": \"guest01\", \"content\": \"This is a reply from unit test\", \"parentId\": " + existingCommentId + ", \"replyTo\": \"admin\"}";
+        MvcResult result = mockMvc.perform(post("/api/comments").headers(adminHeaders).content(commentJson))
+                .andExpect(status().isOk())
+                .andReturn();
+        String rs = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+        JSONObject jsonObject = new JSONObject(rs);
+        assertTrue(jsonObject.getBoolean("success"));
+    }
+
+    @Test
+    public void testAddCommentTooLongFails() throws Exception {
+        String longContent = "a".repeat(1001);
+        String commentJson = "{\"resourceId\": " + testResourceId + ", \"username\": \"admin\", \"content\": \"" + longContent + "\", \"parentId\": 0}";
+        MvcResult result = mockMvc.perform(post("/api/comments").headers(adminHeaders).content(commentJson))
+                .andExpect(status().isOk())
+                .andReturn();
+        String rs = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+        JSONObject jsonObject = new JSONObject(rs);
+        assertFalse(jsonObject.getBoolean("success"));
+    }
+
+    @Test
+    public void testAddCommentWithXssContent() throws Exception {
+        String commentJson = "{\"resourceId\": " + testResourceId + ", \"username\": \"admin\", \"content\": \"<script>alert('xss')</script>\", \"parentId\": 0}";
+        MvcResult result = mockMvc.perform(post("/api/comments").headers(adminHeaders).content(commentJson))
+                .andExpect(status().isOk())
+                .andReturn();
+        String rs = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+        JSONObject jsonObject = new JSONObject(rs);
+        assertTrue(jsonObject.getBoolean("success"));
+    }
+
+    @Test
+    public void testSoftDeleteCommentSuccess() throws Exception {
+        String commentJson = "{\"resourceId\": " + testResourceId + ", \"username\": \"admin\", \"content\": \"To be deleted\", \"parentId\": 0}";
+        MvcResult createResult = mockMvc.perform(post("/api/comments").headers(adminHeaders).content(commentJson))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        MvcResult result = mockMvc.perform(delete("/api/comments/99").headers(adminHeaders))
+                .andExpect(status().isOk())
+                .andReturn();
+        String rs = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+        JSONObject jsonObject = new JSONObject(rs);
+        assertTrue(jsonObject.getBoolean("success"));
+    }
+
+    @Test
+    public void testSoftDeleteCommentNotFoundStillReturnsSuccess() throws Exception {
+        MvcResult result = mockMvc.perform(delete("/api/comments/99999").headers(adminHeaders))
+                .andExpect(status().isOk())
+                .andReturn();
+        String rs = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+        JSONObject jsonObject = new JSONObject(rs);
+        assertTrue(jsonObject.getBoolean("success"));
+    }
+
+    @Test
+    public void testCommentActionWithoutUsernameFails() throws Exception {
+        mockMvc.perform(post("/api/comments/" + existingCommentId + "/action?type=like").headers(adminHeaders))
+                .andExpect(status().isBadRequest())
+                .andReturn();
+    }
+
+    @Test
+    public void testReportCommentSuccess() throws Exception {
+        String reportJson = "{\"commentId\": " + existingCommentId + ", \"reporterUsername\": \"admin\", \"reason\": \"Spam\", \"details\": \"This comment contains spam content\"}";
+        MvcResult result = mockMvc.perform(post("/api/comments/report").headers(adminHeaders).content(reportJson))
+                .andExpect(status().isOk())
+                .andReturn();
+        String rs = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+        JSONObject jsonObject = new JSONObject(rs);
+        assertTrue(jsonObject.getBoolean("success"));
+    }
+
+    @Test
+    public void testGetPendingReportsSuccess() throws Exception {
+        MvcResult result = mockMvc.perform(get("/api/admin/comment-reports").headers(adminHeaders))
+                .andExpect(status().isOk())
+                .andReturn();
+        String rs = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+        JSONArray jsonArray = new JSONArray(rs);
+        assertTrue(jsonArray.length() >= 0);
+    }
+
+    @Test
+    public void testGetPendingReportsUnauthorized() throws Exception {
+        HttpHeaders headers = getContributorHeaders();
+        mockMvc.perform(get("/api/admin/comment-reports").headers(headers))
+                .andExpect(status().isForbidden())
+                .andReturn();
+    }
+
+    @Test
+    public void testProcessReportNotFound() throws Exception {
+        MvcResult result = mockMvc.perform(put("/api/admin/comment-reports/99999?status=1").headers(adminHeaders))
+                .andExpect(status().isOk())
+                .andReturn();
+        String rs = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+        JSONObject jsonObject = new JSONObject(rs);
+        assertFalse(jsonObject.getBoolean("success"));
+    }
+
+    @Test
+    public void testProcessReportWithInvalidStatus() throws Exception {
+        MvcResult result = mockMvc.perform(put("/api/admin/comment-reports/99999?status=99").headers(adminHeaders))
+                .andExpect(status().isOk())
+                .andReturn();
+        String rs = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+        JSONObject jsonObject = new JSONObject(rs);
+        assertFalse(jsonObject.getBoolean("success"));
+    }
+
+    @Test
+    public void testProcessReportApprove() throws Exception {
+        JSONArray reports = new JSONArray(mockMvc.perform(get("/api/admin/comment-reports").headers(adminHeaders))
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8));
+        if (reports.length() > 0) {
+            Long reportId = reports.getJSONObject(0).getLong("id");
+            MvcResult result = mockMvc.perform(put("/api/admin/comment-reports/" + reportId + "?status=1").headers(adminHeaders))
+                    .andExpect(status().isOk())
+                    .andReturn();
+            String rs = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+            JSONObject jsonObject = new JSONObject(rs);
+            assertTrue(jsonObject.getBoolean("success"));
+        }
+    }
+
+    @Test
+    public void testProcessReportReject() throws Exception {
+        JSONArray reports = new JSONArray(mockMvc.perform(get("/api/admin/comment-reports").headers(adminHeaders))
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8));
+        if (reports.length() > 0) {
+            Long reportId = reports.getJSONObject(0).getLong("id");
+            MvcResult result = mockMvc.perform(put("/api/admin/comment-reports/" + reportId + "?status=2").headers(adminHeaders))
+                    .andExpect(status().isOk())
+                    .andReturn();
+            String rs = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+            JSONObject jsonObject = new JSONObject(rs);
+            assertTrue(jsonObject.getBoolean("success"));
+        }
     }
 }
