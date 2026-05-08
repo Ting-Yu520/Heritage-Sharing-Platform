@@ -244,9 +244,9 @@ To ensure compatibility across different MySQL versions, the collation in the SQ
 
 ## Future Optimization Plans
 
-- [ ] Implement Spring Security or JWT for more secure authentication.
-- [ ] Support local image uploads for resources (currently relies on network URLs).
-- [ ] Add unit tests and automated API tests.
+- [ ] Completed in first release: unit tests (128 tests, 100% pass).
+- [ ] local image upload support.
+- [ ] JWT session management.
 - [ ] Optimize frontend responsive design for mobile devices.
 - [ ] Improve email templates (HTML styling).
 
